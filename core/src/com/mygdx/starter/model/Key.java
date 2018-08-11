@@ -1,4 +1,4 @@
-package com.mygdx.starter.keyboard;
+package com.mygdx.starter.model;
 
 import com.badlogic.gdx.math.Rectangle;
 
@@ -11,6 +11,7 @@ public class Key {
     public boolean isPressed;
     public boolean isDisabled;
     public float x, y;
+    private float centerX;
 
     public Key(String name, String caption, float x, float y, float width, float height) {
         this.name = name;
@@ -21,5 +22,13 @@ public class Key {
         this.height = height;
         this.isPressed = false;
         this.rectangle = new Rectangle(x, y, width, height);
+    }
+
+    public float getCenterX() {
+        return x + width / 2;
+    }
+
+    public float getCenterY() {
+        return y + height / 2;
     }
 }

@@ -15,4 +15,17 @@ public class StringUtils {
         layout.setText(font, text);
         return layout;
     }
+
+    public static int numOccurrences(String haystack, char needle)
+    {
+        int count = 0;
+        for (int i=0; i < haystack.length(); i++)
+        {
+            if (haystack.charAt(i) == needle)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
 }

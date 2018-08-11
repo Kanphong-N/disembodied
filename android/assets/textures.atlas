@@ -1,202 +1,76 @@
 
 textures.png
-size: 2048,512
+size: 512,64
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
-barracks_blue
+crumble
   rotate: false
-  xy: 384, 2
-  size: 189, 150
-  orig: 189, 150
+  xy: 70, 2
+  size: 32, 32
+  orig: 32, 32
   offset: 0, 0
-  index: -1
-barracks_blue_glow
+  index: 1
+crumble
   rotate: false
-  xy: 623, 202
-  size: 189, 150
-  orig: 189, 150
+  xy: 104, 2
+  size: 32, 32
+  orig: 32, 32
   offset: 0, 0
-  index: -1
-barracks_neutral
+  index: 2
+crumble
+  rotate: false
+  xy: 138, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 3
+crumble
+  rotate: false
+  xy: 172, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 4
+crumble
+  rotate: false
+  xy: 206, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 5
+minion_jumping
+  rotate: false
+  xy: 36, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 1
+minion_jumping
+  rotate: false
+  xy: 36, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 2
+minion_moving
+  rotate: false
+  xy: 36, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 1
+minion_moving
   rotate: false
   xy: 2, 2
-  size: 189, 150
-  orig: 189, 150
+  size: 32, 32
+  orig: 32, 32
   offset: 0, 0
-  index: -1
-barracks_neutral_glow
+  index: 2
+minion_moving
   rotate: false
-  xy: 814, 354
-  size: 189, 150
-  orig: 189, 150
+  xy: 240, 2
+  size: 32, 32
+  orig: 32, 32
   offset: 0, 0
-  index: -1
-barracks_red
-  rotate: false
-  xy: 193, 2
-  size: 189, 150
-  orig: 189, 150
-  offset: 0, 0
-  index: -1
-barracks_red_glow
-  rotate: false
-  xy: 623, 354
-  size: 189, 150
-  orig: 189, 150
-  offset: 0, 0
-  index: -1
-castle_blue
-  rotate: false
-  xy: 2, 154
-  size: 205, 174
-  orig: 205, 174
-  offset: 0, 0
-  index: -1
-castle_blue_glow
-  rotate: false
-  xy: 416, 154
-  size: 205, 174
-  orig: 205, 174
-  offset: 0, 0
-  index: -1
-castle_neutral
-  rotate: false
-  xy: 209, 330
-  size: 205, 174
-  orig: 205, 174
-  offset: 0, 0
-  index: -1
-castle_neutral_glow
-  rotate: false
-  xy: 2, 330
-  size: 205, 174
-  orig: 205, 174
-  offset: 0, 0
-  index: -1
-castle_red
-  rotate: false
-  xy: 416, 330
-  size: 205, 174
-  orig: 205, 174
-  offset: 0, 0
-  index: -1
-castle_red_glow
-  rotate: false
-  xy: 209, 154
-  size: 205, 174
-  orig: 205, 174
-  offset: 0, 0
-  index: -1
-farm_blue
-  rotate: false
-  xy: 1005, 354
-  size: 188, 150
-  orig: 188, 150
-  offset: 0, 0
-  index: -1
-farm_neutral
-  rotate: false
-  xy: 1005, 354
-  size: 188, 150
-  orig: 188, 150
-  offset: 0, 0
-  index: -1
-farm_red
-  rotate: false
-  xy: 1005, 354
-  size: 188, 150
-  orig: 188, 150
-  offset: 0, 0
-  index: -1
-farm_neutral_glow
-  rotate: false
-  xy: 814, 202
-  size: 188, 150
-  orig: 188, 150
-  offset: 0, 0
-  index: -1
-farm_blue_glow
-  rotate: false
-  xy: 814, 202
-  size: 188, 150
-  orig: 188, 150
-  offset: 0, 0
-  index: -1
-farm_red_glow
-  rotate: false
-  xy: 814, 202
-  size: 188, 150
-  orig: 188, 150
-  offset: 0, 0
-  index: -1
-plus_button
-  rotate: false
-  xy: 1925, 474
-  size: 29, 30
-  orig: 29, 30
-  offset: 0, 0
-  index: -1
-soldier_blue
-  rotate: false
-  xy: 1150, 297
-  size: 32, 55
-  orig: 32, 55
-  offset: 0, 0
-  index: -1
-soldier_red
-  rotate: false
-  xy: 623, 145
-  size: 32, 55
-  orig: 32, 55
-  offset: 0, 0
-  index: -1
-tower_blue
-  rotate: false
-  xy: 1779, 312
-  size: 144, 192
-  orig: 144, 192
-  offset: 0, 0
-  index: -1
-tower_blue_glow
-  rotate: false
-  xy: 1004, 160
-  size: 144, 192
-  orig: 144, 192
-  offset: 0, 0
-  index: -1
-tower_neutral
-  rotate: false
-  xy: 1341, 312
-  size: 144, 192
-  orig: 144, 192
-  offset: 0, 0
-  index: -1
-tower_neutral_glow
-  rotate: false
-  xy: 1487, 312
-  size: 144, 192
-  orig: 144, 192
-  offset: 0, 0
-  index: -1
-tower_red
-  rotate: false
-  xy: 1633, 312
-  size: 144, 192
-  orig: 144, 192
-  offset: 0, 0
-  index: -1
-tower_red_glow
-  rotate: false
-  xy: 1195, 312
-  size: 144, 192
-  orig: 144, 192
-  offset: 0, 0
-  index: -1
-wodden_box
-  rotate: false
-  xy: 575, 106
-  size: 46, 46
-  orig: 46, 46
-  offset: 0, 0
-  index: -1
+  index: 3
