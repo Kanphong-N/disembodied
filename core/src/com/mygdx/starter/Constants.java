@@ -6,10 +6,12 @@ package com.mygdx.starter;
 
 public class Constants {
 
-    public static final String GameTitle = "libGDX Starter Project";
-    public static final int WindowWidth = 1280;
-    public static final int WindowHeight = 720;
-    public static int FPS = 60;
+    public static final String GameTitle = "Disembody";
+    public static final int WindowWidth = 1280 / 2;
+    public static final int WindowHeight = 720 / 2;
+
+    //public static final int WindowWidth = 640;
+    //public static final int WindowHeight = 360;
 
     public enum Colors {Neutral, Blue, Red}
 

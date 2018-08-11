@@ -1,13 +1,13 @@
 package com.mygdx.starter;
 
 import com.badlogic.gdx.Game;
-import com.mygdx.starter.screens.MainMenuScreen;
+import com.mygdx.starter.screens.MainScreen;
 
 public class MyGdxGame extends Game {
 
     @Override
     public void create() {
-        MainMenuScreen screen = new MainMenuScreen();
+        MainScreen screen = new MainScreen();
         setScreen(screen);
     }
 

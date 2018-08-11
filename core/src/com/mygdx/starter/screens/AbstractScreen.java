@@ -4,7 +4,9 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Created by Christian on 26.02.2018.
@@ -12,6 +14,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public abstract class AbstractScreen extends ScreenAdapter {
 
+    protected Vector2 vec2;
     protected final SpriteBatch batch;
     protected final OrthographicCamera camera;
     protected final FitViewport viewport;
@@ -25,5 +28,10 @@ public abstract class AbstractScreen extends ScreenAdapter {
 
         batch = new SpriteBatch();
         sr = new ShapeRenderer();
+    }
+
+    protected void unproject(Viewport viewport, int screenX, int screenY) {
+        vec2.set(screenX, screenY);
+        vec2 = viewport.unproject(vec2);
     }
 }

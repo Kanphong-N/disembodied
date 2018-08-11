@@ -1,17 +1,17 @@
 package com.mygdx.starter.utils;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
 /**
  * Created by Christian on 28.02.2018.
  */
 
 public class FontUtils {
-    public static BitmapFont Gothic = new BitmapFont(Gdx.files.internal("fonts/gothic.fnt"));
+    private static GlyphLayout layout = new GlyphLayout();
 
-    public static BitmapFont BlackCherryBig = new BitmapFont(Gdx.files.internal("fonts/blkchcry_big.fnt"));
-    public static BitmapFont BlackCherry = new BitmapFont(Gdx.files.internal("fonts/blkchcry_big.fnt"));
-    public static BitmapFont BlackCherrySmall = new BitmapFont(Gdx.files.internal("fonts/blkchcry_big.fnt"));
-
+    public static GlyphLayout getLayout(BitmapFont font, String text) {
+        layout.setText(font, text);
+        return layout;
+    }
 }

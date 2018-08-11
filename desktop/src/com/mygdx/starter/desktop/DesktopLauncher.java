@@ -12,9 +12,9 @@ import static com.mygdx.starter.Constants.WindowWidth;
 public class DesktopLauncher {
     public static void main(String[] arg) {
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-        float scale = 1f;
-        config.x = 1920/2 - WindowWidth / 2;
-        config.y = 1080/2 - WindowHeight / 2;
+        float scale = 2f;
+        config.x = (int) (1920 / 2 - (WindowWidth * scale) / 2);
+        config.y = (int) (1080 / 2 - (WindowHeight * scale) / 2);
         config.width = (int) (WindowWidth * scale);
         config.height = (int) (WindowHeight * scale);
         config.vSyncEnabled = true;
