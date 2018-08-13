@@ -29,6 +29,8 @@ import com.mygdx.starter.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.print.attribute.standard.Media;
+
 import static com.mygdx.starter.Constants.KeySize;
 import static com.mygdx.starter.Constants.MonitorBlue;
 import static com.mygdx.starter.Constants.NumPixelsKeyPress;
@@ -147,7 +149,8 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     private Sound magic;
     private boolean fadeToBlack;
     private float fadeToBlackAlpha;
-    private int AbaalTypingSpeed = 60;
+    private int pauseBetweenNewLines = 80;
+    private long AbalTypingSpeed = 30;
 
     public enum State {CheerfulGame, AreYouHuman, AbalInterceptsSpikes, Voices, AbalExplains, SquishGame, SquishGameAftermath, Disembody}
 
@@ -240,10 +243,11 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             lineIndex = 11;
 
             voices();
-            /*abalExplains();
+            abalExplains();
+
             squishGame();
             squishGameAftermath();
-            disembody();*/
+            disembody();
         }
     }
 
@@ -344,6 +348,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         previousTime2 = 0;
         previousTime3 = 0;
         somethingIsRunningoutOfSpace = true;
+        spaceKey.isPressed = true;
     }
 
     private void areYouHuman() {
@@ -769,6 +774,25 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
             sr.end();
             Gdx.gl.glDisable(GL30.GL_BLEND);
+
+            batch.setProjectionMatrix(camera.combined);
+            batch.begin();
+            font.setColor(Color.WHITE);
+            if (elapsedTimeInCurrentScene > 15 && elapsedTimeInCurrentScene < 18) {
+                font.draw(batch, "Hi " + userName + "!", 100, 100);
+
+            } else if (elapsedTimeInCurrentScene > 18f && elapsedTimeInCurrentScene < 23) {
+                font.draw(batch, "My name is Abaal. You may hate me.", 100, 100);
+
+            } else if (elapsedTimeInCurrentScene > 23 && elapsedTimeInCurrentScene < 26) {
+                font.draw(batch, "But let me tell you a story.", 100, 100);
+
+            } else if (elapsedTimeInCurrentScene > 26 && elapsedTimeInCurrentScene < 29) {
+                // draw nothing
+            } else if (elapsedTimeInCurrentScene > 29) {
+                myGdxGame.showEmotionalScreen();
+            }
+            batch.end();
         }
     }
 
@@ -900,23 +924,12 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                 fadeToBlack = true;
                 fadeToBlackAlpha += 0.0025f;
             }
-            if (elapsedTimeInCurrentScene > 17 && elapsedTimeInCurrentScene < 19) {
-                font.draw(batch, "Hi" + userName + "!", 100, 100);
 
-            } else if (elapsedTimeInCurrentScene > 19f && elapsedTimeInCurrentScene < 23) {
-                font.draw(batch, "My name is Abaal.", 100, 100);
-
-            } else if (elapsedTimeInCurrentScene > 23 && elapsedTimeInCurrentScene < 26) {
-                font.draw(batch, "Let me tell you a story.", 100, 100);
-
-            } else if (elapsedTimeInCurrentScene > 26) {
-                myGdxGame.showEmotionalScreen();
-            }
         }
     }
 
     private void abaalSquishGameAftermath() {
-        if (System.currentTimeMillis() > previousTime2 + 1) {
+        if (System.currentTimeMillis() > previousTime2 + AbalTypingSpeed) {
 
             if (numTicksToWait > 0) {
                 numTicksToWait--;
@@ -971,7 +984,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                             newline();
                             break;
                         case 11:
-                            numTicksToWait = 100;
+                            numTicksToWait = 150;
                             break;
                         case 12:
                             disembody();
@@ -989,7 +1002,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                     adaptChat();
                     MediaManager.playSoundRandomPitch("audio/keystroke.ogg");
                 } else {
-                    numTicksToWait = AbaalTypingSpeed;
+                    numTicksToWait = pauseBetweenNewLines;
                 }
             }
         }
@@ -1001,7 +1014,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     }
 
     private void abaalExplainsAndTalks() {
-        if (System.currentTimeMillis() > previousTime2 + 1) {
+        if (System.currentTimeMillis() > previousTime2 + AbalTypingSpeed) {
 
             if (numTicksToWait > 0) {
                 numTicksToWait--;
@@ -1144,6 +1157,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                             newline();
                             break;
                         case 27:
+                            MediaManager.playSound("audio/plop.ogg");
                             hideKeyboard = true;
                             autoLine = "< abaal turned off the lights >";
                             newline();
@@ -1182,7 +1196,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                     adaptChat();
                     MediaManager.playSoundRandomPitch("audio/keystroke.ogg");
                 } else {
-                    numTicksToWait = AbaalTypingSpeed;
+                    numTicksToWait = pauseBetweenNewLines;
                 }
             }
         }
@@ -1190,7 +1204,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
     private void abaalInterceptsSpikesAndTalks() {
         // abaal types
-        if (System.currentTimeMillis() > previousTime2 + 1) {
+        if (System.currentTimeMillis() > previousTime2 + AbalTypingSpeed) {
             //System.out.println(elapsedTimeInCurrentScene);
 
             if (numTicksToWait > 0) {
@@ -1295,7 +1309,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                     if (lineIndex == 4 || lineIndex == 5 || lineIndex == 10) {
                         numTicksToWait = 200;
                     } else {
-                        numTicksToWait = AbaalTypingSpeed;
+                        numTicksToWait = pauseBetweenNewLines;
                     }
                 }
             }
