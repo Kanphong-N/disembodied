@@ -3,6 +3,7 @@ package com.mygdx.starter.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -18,10 +19,11 @@ import static com.mygdx.starter.Constants.WindowWidth;
 
 public class CreditsScreen extends AbstractScreen implements InputProcessor {
 
-    private final Music music;
+    private Music music;
     private final BitmapFont font;
     private final Sprite title;
     private final Sprite heart;
+    private Sound musicSound;
     private float fontAlpha = 1f;
     private float fadeSpeed = 0.3f;
     private float elapsedTime;
@@ -107,8 +109,11 @@ public class CreditsScreen extends AbstractScreen implements InputProcessor {
     public CreditsScreen() {
         super(WindowWidth, Constants.WindowHeight);
 
-        music = MediaManager.playMusic("audio/credits2.ogg", false);
-        music.setOnCompletionListener(music -> Gdx.app.exit());
+        try {
+            music = MediaManager.playMusic("audio/credits2.ogg", false);
+        } catch (Exception ex) {
+            musicSound  = MediaManager.playSound("audio/credits2.ogg", false);
+        }
 
         Gdx.input.setInputProcessor(this);
         font = new BitmapFont(Gdx.files.internal("fonts/amiga4everpro2.fnt"));
@@ -132,7 +137,9 @@ public class CreditsScreen extends AbstractScreen implements InputProcessor {
         batch.begin();
         font.setColor(1f, 1f, 1f, fontAlpha);
 
-         if (elapsedTime >= 49.226) {
+        if (elapsedTime >= 60 + 10) {
+            Gdx.app.exit();
+        } else if (elapsedTime >= 49.226) {
             layoutw = FontUtils.getLayout(font, "- The End -");
             font.draw(batch, "- The End -", WindowWidth / 2 - layoutw.width / 2, WindowHeight / 2 - layoutw.height / 2);
         } else {

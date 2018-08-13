@@ -19,7 +19,7 @@ public class DesktopLauncher {
         config.height = (int) (WindowHeight * scale);
         config.vSyncEnabled = true;
         config.title = Constants.GameTitle;
-        //config.fullscreen = true;
+        config.fullscreen = true;
         new LwjglApplication(new MyGdxGame(), config);
     }
 }

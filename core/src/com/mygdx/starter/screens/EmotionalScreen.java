@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.mygdx.starter.Constants;
 import com.mygdx.starter.MediaManager;
+import com.mygdx.starter.MyGdxGame;
 import com.mygdx.starter.utils.FontUtils;
 
 import static com.mygdx.starter.Constants.WindowHeight;
@@ -19,16 +20,19 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
     private final Music music;
     private final BitmapFont font;
     private final Music rain;
+    private final MyGdxGame myGdxGame;
     private float elapsedTime;
     private GlyphLayout layout;
-    private int sceneIndex;
     private String phrase = "";
     private String oldPhrase = "";
     private float fontAlpha = 1f;
     private float fadeSpeed = 0.0025f;
+    private int sceneIndex;
+    private boolean alreadyStartedagain = false;
 
-    public EmotionalScreen() {
+    public EmotionalScreen(MyGdxGame myGdxGame) {
         super(WindowWidth, Constants.WindowHeight);
+        this.myGdxGame = myGdxGame;
         music = MediaManager.playMusic("audio/emotional.ogg", true);
         rain = MediaManager.playMusic("audio/rain.ogg", true);
         rain.setVolume(0.5f);
@@ -38,7 +42,7 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0f,0f,0f,1f);
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
 
         update(delta);
@@ -63,7 +67,7 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
     };
 
     private String[][] group2 = new String[][]{
-            new String[]{"The", "The body", "The body vanishes,"},
+            new String[]{"The", "The body", "The body vanishes"},
             new String[]{},
             new String[]{"while", "while the", "while the soul", "while the soul lives."},
             new String[]{},
@@ -71,7 +75,7 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
             new String[]{},
             new String[]{"I'm", "I'm mouth", "I'm mouth-less"},
             new String[]{},
-            new String[]{"and", "and I", "and I must", "and I must scream."},
+            new String[]{"and", "and I", "and I must", "and I must scream"},
     };
 
     private String[][] currGroup = group1;
@@ -160,11 +164,35 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
             }
         } else if (sceneIndex == 9) {
             fontAlpha -= fadeSpeed;
-            if (elapsedTime > 60 + 11.596) {
-                currGroup = group2;
-                startAgain();
-                phrase = "";
-                fontAlpha = 1f;
+            if (alreadyStartedagain) {
+                elapsedTime = 0;
+                sceneIndex++;
+            } else {
+                if (elapsedTime > 60 + 11.596) {
+                    currGroup = group2;
+                    if (!alreadyStartedagain) {
+                        alreadyStartedagain = true;
+                        startAgain();
+                    }
+                    phrase = "";
+                    fontAlpha = 1f;
+                }
+            }
+        } else if (sceneIndex == 10) {
+            int waitTime = 8;
+            fontAlpha -= fadeSpeed;
+
+            music.setVolume(Math.max(0, 1f - elapsedTime / waitTime));
+            rain.setVolume(Math.max(0, 0.5f - elapsedTime / waitTime));
+
+            if (elapsedTime >= waitTime) {
+                music.setVolume(0f);
+                rain.setVolume(0f);
+                music.stop();
+                rain.stop();
+            }
+            if (elapsedTime > 5) {
+                myGdxGame.showCreditsScreen();
             }
         }
 

@@ -1010,6 +1010,9 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
     private void disembody() {
         goToNextState();
+        if (factoryMusic != null) {
+            factoryMusic.stop();
+        }
         magic = MediaManager.playSound("audio/magic_short.ogg");
     }
 
