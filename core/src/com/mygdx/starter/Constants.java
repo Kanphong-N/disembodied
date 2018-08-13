@@ -14,11 +14,7 @@ public class Constants {
     public static final int WindowWidth = 1280 / 2 - 210;
     public static final int WindowHeight = 400;
 
-    public enum Colors {Neutral, Blue, Red}
-
     public enum Directions {North, East, South, West}
-
-    public static float FadingSpeed = 0.02f; // amount of change for alpha values in each tick
 
     public static float NumPixelsKeyPress = 3f;
     public static Color MonitorBlue = Color.valueOf("#0094FF");

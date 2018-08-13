@@ -69,9 +69,9 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
             new String[]{},
             new String[]{"Incredible", "Incredible technology", "Incredible technology indeed."},
             new String[]{},
-            new String[]{"I'm", "I'm mouth", "I'm mouth-less..."},
+            new String[]{"I'm", "I'm mouth", "I'm mouth-less"},
             new String[]{},
-            new String[]{"...and", "...and I", "...and I must", "...and I must scream."},
+            new String[]{"and", "and I", "and I must", "and I must scream."},
     };
 
     private String[][] currGroup = group1;

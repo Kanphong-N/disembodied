@@ -147,6 +147,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     private Sound magic;
     private boolean fadeToBlack;
     private float fadeToBlackAlpha;
+    private int AbaalTypingSpeed = 60;
 
     public enum State {CheerfulGame, AreYouHuman, AbalInterceptsSpikes, Voices, AbalExplains, SquishGame, SquishGameAftermath, Disembody}
 
@@ -238,12 +239,11 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             spikesGame();
             lineIndex = 11;
 
-
             voices();
-            abalExplains();
+            /*abalExplains();
             squishGame();
             squishGameAftermath();
-            disembody();
+            disembody();*/
         }
     }
 
@@ -763,7 +763,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             sr.rect(0, 0, WindowWidth, WindowHeight);
 
             if (fadeToBlack) {
-                sr.setColor(0,0,0, fadeToBlackAlpha);
+                sr.setColor(0, 0, 0, fadeToBlackAlpha);
                 sr.rect(0, 0, WindowWidth, WindowHeight);
             }
 
@@ -900,7 +900,16 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                 fadeToBlack = true;
                 fadeToBlackAlpha += 0.0025f;
             }
-            if (elapsedTimeInCurrentScene > 17f) {
+            if (elapsedTimeInCurrentScene > 17 && elapsedTimeInCurrentScene < 19) {
+                font.draw(batch, "Hi" + userName + "!", 100, 100);
+
+            } else if (elapsedTimeInCurrentScene > 19f && elapsedTimeInCurrentScene < 23) {
+                font.draw(batch, "My name is Abaal.", 100, 100);
+
+            } else if (elapsedTimeInCurrentScene > 23 && elapsedTimeInCurrentScene < 26) {
+                font.draw(batch, "Let me tell you a story.", 100, 100);
+
+            } else if (elapsedTimeInCurrentScene > 26) {
                 myGdxGame.showEmotionalScreen();
             }
         }
@@ -962,6 +971,9 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                             newline();
                             break;
                         case 11:
+                            numTicksToWait = 100;
+                            break;
+                        case 12:
                             disembody();
                             break;
                         default:
@@ -977,7 +989,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                     adaptChat();
                     MediaManager.playSoundRandomPitch("audio/keystroke.ogg");
                 } else {
-                    numTicksToWait = 40;
+                    numTicksToWait = AbaalTypingSpeed;
                 }
             }
         }
@@ -1084,7 +1096,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                             autoLine = "";
                             break;
                         case 16:
-                            numTicksToWait = 430;
+                            numTicksToWait = 450;
                             break;
                         case 17:
                             minionsAreTalking = false;
@@ -1170,7 +1182,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                     adaptChat();
                     MediaManager.playSoundRandomPitch("audio/keystroke.ogg");
                 } else {
-                    numTicksToWait = 40;
+                    numTicksToWait = AbaalTypingSpeed;
                 }
             }
         }
@@ -1283,7 +1295,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                     if (lineIndex == 4 || lineIndex == 5 || lineIndex == 10) {
                         numTicksToWait = 200;
                     } else {
-                        numTicksToWait = 40;
+                        numTicksToWait = AbaalTypingSpeed;
                     }
                 }
             }
@@ -1516,8 +1528,10 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                 sad = MediaManager.playSound("audio/sad.ogg", 1f, true, 0.3f);
                 explaination = MediaManager.playMusic("audio/explaination.ogg", false);
                 explaination.setOnCompletionListener(music -> {
+                    enableTypingKeysForUser();
                     releaseHumans = MediaManager.playSound("audio/release_humans.ogg", true);
                 });
+                disableAllKeys();
                 break;
             case "release humans":
                 if (releaseHumans != null) {
@@ -1568,11 +1582,18 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             explaination.stop();
             // explaination.dispose();
         }
+        if (sad != null) {
+            sad.stop();
+        }
+        factoryMusic.play();
+
         numTicksToWait = 100;
         goToNextState();
         autoLineIndex = 0;
         autoLine = "< abaal connected >";
         abalIsHere = true;
+        hideCreepyOverlay = false;
+
         previousTime2 = 0;
         lineIndex = 0;
         minionsAreTalking = false;
