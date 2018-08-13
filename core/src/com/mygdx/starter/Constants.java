@@ -12,9 +12,6 @@ public class Constants {
     public static final int WindowWidth = 1280 / 2 - 210;
     public static final int WindowHeight = 400;
 
-    //public static final int WindowWidth = 640;
-    //public static final int WindowHeight = 360;
-
     public enum Colors {Neutral, Blue, Red}
 
     public enum Directions {North, East, South, West}
@@ -23,6 +20,8 @@ public class Constants {
 
     public static float NumPixelsKeyPress = 3f;
     public static Color MonitorBlue = Color.valueOf("#0094FF");
+    public static float KeySize = 31f;
+
 
 
 }
