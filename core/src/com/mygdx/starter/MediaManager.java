@@ -57,7 +57,7 @@ public class MediaManager {
                     assetManager.unload(musicFiles[previousMusicFile]); // free the resources of the previous music file
                 }
                 if (music != null) {
-                    music.dispose();
+                    //music.dispose();
                     music = null;
                 }
                 music = loadMusicAsset(musicFiles[currentMusicFile]);

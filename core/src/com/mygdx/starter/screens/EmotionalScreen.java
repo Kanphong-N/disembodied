@@ -18,6 +18,7 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
 
     private final Music music;
     private final BitmapFont font;
+    private final Music rain;
     private float elapsedTime;
     private GlyphLayout layout;
     private int sceneIndex;
@@ -29,20 +30,22 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
     public EmotionalScreen() {
         super(WindowWidth, Constants.WindowHeight);
         music = MediaManager.playMusic("audio/emotional.ogg", true);
+        rain = MediaManager.playMusic("audio/rain.ogg", true);
+        rain.setVolume(0.5f);
         Gdx.input.setInputProcessor(this);
         font = new BitmapFont(Gdx.files.internal("fonts/amiga4everpro2.fnt"));
     }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(1f,1f,1f,1f);
+        Gdx.gl.glClearColor(0f,0f,0f,1f);
         Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
 
         update(delta);
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        font.setColor(0f, 0f, 0f, fontAlpha);
+        font.setColor(1f, 1f, 1f, fontAlpha);
         font.draw(batch, phrase, WindowWidth / 2f - layout.width / 2f, WindowHeight / 2f - layout.height / 2f);
         batch.end();
     }

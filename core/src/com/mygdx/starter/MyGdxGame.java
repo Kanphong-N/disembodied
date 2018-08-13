@@ -1,6 +1,7 @@
 package com.mygdx.starter;
 
 import com.badlogic.gdx.Game;
+import com.mygdx.starter.screens.CreditsScreen;
 import com.mygdx.starter.screens.EmotionalScreen;
 import com.mygdx.starter.screens.GameScreen;
 
@@ -10,8 +11,10 @@ public class MyGdxGame extends Game {
 
     @Override
     public void create() {
-        gameScreen  = new GameScreen(this);
-        setScreen(gameScreen);
+        setScreen(new CreditsScreen());
+
+/*        gameScreen  = new GameScreen(this);
+        setScreen(gameScreen);*/
     }
 
     public void showEmotionalScreen() {

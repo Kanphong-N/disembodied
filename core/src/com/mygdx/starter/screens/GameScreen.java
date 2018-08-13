@@ -25,20 +25,17 @@ import com.mygdx.starter.utils.FontUtils;
 import com.mygdx.starter.utils.MathUtils;
 import com.mygdx.starter.utils.ScreenUtils;
 import com.mygdx.starter.utils.StringUtils;
-import com.sun.java.swing.plaf.motif.MotifEditorPaneUI;
-import com.sun.org.apache.regexp.internal.RE;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mygdx.starter.Constants.MonitorBlue;
 import static com.mygdx.starter.Constants.KeySize;
+import static com.mygdx.starter.Constants.MonitorBlue;
 import static com.mygdx.starter.Constants.NumPixelsKeyPress;
 import static com.mygdx.starter.Constants.WindowHeight;
 import static com.mygdx.starter.Constants.WindowWidth;
 import static com.mygdx.starter.Constants.femaleNames;
 import static com.mygdx.starter.Constants.maleNames;
-import static com.mygdx.starter.screens.GameScreen.State.AbalExplains;
 import static com.mygdx.starter.screens.GameScreen.State.CheerfulGame;
 import static com.mygdx.starter.screens.GameScreen.State.Disembody;
 import static com.mygdx.starter.screens.GameScreen.State.SquishGame;
@@ -127,7 +124,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     private Sound sad;
     private boolean minionsAreTalking;
     private Sound unknownCommand;
-    private Sound explaination;
+    private Music explaination;
     private boolean triedReleaseHumans;
     private int numTriesLeft = 4;
     private boolean hasHitSpaceBar;
@@ -146,6 +143,10 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     private Sprite face;
     private boolean drawFaceBefore;
     private boolean hideKeyboard;
+    private Sound releaseHumans;
+    private Sound magic;
+    private boolean fadeToBlack;
+    private float fadeToBlackAlpha;
 
     public enum State {CheerfulGame, AreYouHuman, AbalInterceptsSpikes, Voices, AbalExplains, SquishGame, SquishGameAftermath, Disembody}
 
@@ -240,9 +241,9 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
             voices();
             abalExplains();
-            /*squishGame();
+            squishGame();
             squishGameAftermath();
-            disembody();*/
+            disembody();
         }
     }
 
@@ -326,14 +327,12 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     }
 
     private void squishGameAftermath() {
-        hideKeyboard = false;
-        List<Minion> minionsToRemove = new ArrayList<>();
-        for (Minion minion : minions) {
-            if (minion.isNotDead()) {
-                minionsToRemove.add(minion);
-            }
+        if (sad != null) {
+            sad.stop();
         }
-        minions.removeAll(minionsToRemove);
+        hideKeyboard = false;
+        minions.removeIf(Minion::isNotDead);
+
         goToNextState();
         disableAllKeys();
         unpressAllKeys();
@@ -759,8 +758,15 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             Gdx.gl.glBlendFunc(GL30.GL_SRC_ALPHA, GL30.GL_ONE_MINUS_SRC_ALPHA);
             sr.setProjectionMatrix(camera.combined);
             sr.begin(ShapeRenderer.ShapeType.Filled);
+
             sr.setColor(1f, 1f, 1f, elapsedTimeInCurrentScene / 5f);
             sr.rect(0, 0, WindowWidth, WindowHeight);
+
+            if (fadeToBlack) {
+                sr.setColor(0,0,0, fadeToBlackAlpha);
+                sr.rect(0, 0, WindowWidth, WindowHeight);
+            }
+
             sr.end();
             Gdx.gl.glDisable(GL30.GL_BLEND);
         }
@@ -890,7 +896,11 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                 }
                 factoryMusic.setVolume(1 - elapsedTimeInCurrentScene / 10f);
             }
-            if (elapsedTimeInCurrentScene > 12f) {
+            if (elapsedTimeInCurrentScene > 5) {
+                fadeToBlack = true;
+                fadeToBlackAlpha += 0.0025f;
+            }
+            if (elapsedTimeInCurrentScene > 17f) {
                 myGdxGame.showEmotionalScreen();
             }
         }
@@ -975,6 +985,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
     private void disembody() {
         goToNextState();
+        magic = MediaManager.playSound("audio/magic_short.ogg");
     }
 
     private void abaalExplainsAndTalks() {
@@ -1503,9 +1514,15 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                 areSpikesEnabled = false;
                 hideCreepyOverlay = true;
                 sad = MediaManager.playSound("audio/sad.ogg", 1f, true, 0.3f);
-                explaination = MediaManager.playSound("audio/explaination.ogg");
+                explaination = MediaManager.playMusic("audio/explaination.ogg", false);
+                explaination.setOnCompletionListener(music -> {
+                    releaseHumans = MediaManager.playSound("audio/release_humans.ogg", true);
+                });
                 break;
             case "release humans":
+                if (releaseHumans != null) {
+                    releaseHumans.stop();
+                }
                 sbChat.append("< unknown command: release humans >");
                 newline();
                 unknownCommand = MediaManager.playSound("audio/unknown_command.ogg", true);
@@ -1631,17 +1648,20 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     public void dispose() {
         super.dispose();
         font.dispose();
+        if (magic != null) {
+            magic.stop();
+        }
         if (factoryMusic != null) {
             factoryMusic.stop();
-            factoryMusic.dispose();
         }
         if (creepy != null) {
             creepy.stop();
-            creepy.dispose();
         }
         if (ghosts != null) {
             ghosts.stop();
-            ghosts.dispose();
+        }
+        if (magic != null) {
+            magic.stop();
         }
         timer.stop();
         minions.clear();
