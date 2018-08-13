@@ -52,6 +52,7 @@ public class Minion {
     public AbstractCallback postJumpCallback;
     private State stateBeforeFrozen;
     private boolean isInflating;
+    public int lives = 4;
 
     public float getCenterX() {
         return x + spriteSize / 2;
@@ -91,6 +92,10 @@ public class Minion {
 
     public boolean isNotDead() {
         return !state.equals(Dead);
+    }
+
+    public void decrementLives() {
+        this.lives--;
     }
 
     public enum State {
@@ -194,7 +199,10 @@ public class Minion {
         }
     }
 
-    private void jumpToNextKey() {
+    public void jumpToNextKey() {
+        if (!isNotDead()) {
+            return;
+        }
         if (keyIndex + 1 < keySequence.size) {
             if (preJumpCallback != null) {
                 preJumpCallback.call(this);
@@ -225,7 +233,7 @@ public class Minion {
 
         if (hasKeysLeftToVisit()) {
             Key nextKey = keySequence.get(keyIndex + 1);
-            if (nextKey != null) {
+            if (nextKey != null && isNotDead()) {
                 if (GameScreen.state.equals(GameScreen.State.CheerfulGame)) {
                     sr.line(getCenterX(), getCenterY(), nextKey.getCenterX(), nextKey.getCenterY(), Color.BROWN, Color.GOLD);
                 } else if (GameScreen.state.equals(GameScreen.State.AbalInterceptsSpikes)) {
