@@ -14,15 +14,18 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Timer;
 import com.mygdx.starter.AbstractCallback;
 import com.mygdx.starter.Constants;
 import com.mygdx.starter.MediaManager;
+import com.mygdx.starter.MyGdxGame;
 import com.mygdx.starter.model.Key;
 import com.mygdx.starter.model.Minion;
 import com.mygdx.starter.utils.FontUtils;
 import com.mygdx.starter.utils.MathUtils;
 import com.mygdx.starter.utils.ScreenUtils;
 import com.mygdx.starter.utils.StringUtils;
+import com.sun.org.apache.regexp.internal.RE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,12 @@ import static com.mygdx.starter.Constants.KeySize;
 import static com.mygdx.starter.Constants.NumPixelsKeyPress;
 import static com.mygdx.starter.Constants.WindowHeight;
 import static com.mygdx.starter.Constants.WindowWidth;
+import static com.mygdx.starter.Constants.femaleNames;
+import static com.mygdx.starter.Constants.maleNames;
+import static com.mygdx.starter.screens.GameScreen.State.AbalExplains;
+import static com.mygdx.starter.screens.GameScreen.State.Disembody;
+import static com.mygdx.starter.screens.GameScreen.State.SquishGame;
+import static com.mygdx.starter.screens.GameScreen.State.SquishGameAftermath;
 
 public class GameScreen extends AbstractScreen implements InputProcessor {
 
@@ -43,6 +52,10 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     private final Rectangle screen;
     private final Music cheerfulMusic;
     private final Sprite creepyOverlay;
+    private final Sprite[] bloods = new Sprite[4];
+    private final Sprite male;
+    private final Sprite female;
+    private final MyGdxGame myGdxGame;
     private Key escapeKey;
     private Key z;
     private Key p;
@@ -53,6 +66,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     private Array<Minion> minions = new Array<>();
     private Key spaceKey;
     private float elapsedTime;
+    private Timer timer = new Timer();
 
     // config
     private float paddingBetweenKeys = 1.8f;
@@ -104,8 +118,33 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     private Sound couldYouTypeIn;
     private boolean transitionToAreYouHuman;
     private Music creepy;
+    private Color cheerfulKeysColor = Color.GOLD;
+    private Array<Minion> minionsToKill = new Array<>();
+    private Music ghosts;
+    private boolean hideCreepyOverlay;
+    private Sound sad;
+    private boolean minionsAreTalking;
+    private Sound unknownCommand;
+    private Sound explaination;
+    private boolean triedReleaseHumans;
+    private int numTriesLeft = 4;
+    private boolean hasHitSpaceBar;
+    private String[] questions = new String[]{
+            "Which key is this game about?",
+            "From which key did the scum creatures came from?",
+            "It's the longest key.",
+            "You are running out of..",
+            "Space!",
+    };
+    private int questionIndex;
+    private boolean somethingIsRunningoutOfSpace;
+    private int bloodIndex;
+    private long previousTime3;
+    private boolean drawFace;
+    private Sprite face;
+    private boolean drawFaceBefore;
 
-    public enum State {CheerfulGame, AreYouHuman, AbalInterceptsSpikes, Voices}
+    public enum State {CheerfulGame, AreYouHuman, AbalInterceptsSpikes, Voices, AbalExplains, SquishGame, SquishGameAftermath, Disembody}
 
     public static State state = State.CheerfulGame;
 
@@ -127,8 +166,9 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         }
     };
 
-    public GameScreen() {
+    public GameScreen(MyGdxGame myGdxGame) {
         super(WindowWidth, Constants.WindowHeight);
+        this.myGdxGame = myGdxGame;
         cheerfulMusic = MediaManager.playMusic("audio/bg.ogg", true);
 
         font = new BitmapFont(Gdx.files.internal("fonts/amiga4everpro2.fnt"));
@@ -147,6 +187,17 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
         screen = new Rectangle(5, escapeKey.y + escapeKey.height + 7, 420, 185);
 
+        bloods[0] = new Sprite(new Texture("blood_1.png"));
+        bloods[1] = new Sprite(new Texture("blood_2.png"));
+        bloods[2] = new Sprite(new Texture("blood_3.png"));
+        bloods[3] = new Sprite(new Texture("blood_4.png"));
+
+        female = new Sprite(new Texture("female.png"));
+        female.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        male = new Sprite(new Texture("male.png"));
+        male.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
         creepyOverlay = new Sprite(new Texture("creepy_overlay.png"));
         creepyOverlay.setBounds(screen.x, screen.y, screen.width, screen.height);
         creepyOverlay.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
@@ -163,14 +214,46 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             bloodyKeys.add(getKeyByName(String.valueOf(i)));
         }
 
-        if (false) {
+        determineFace();
+        if (face == null) {
+            face = male; // assume standard case
+        }
+
+        if (Constants.Debug) {
             minionAreYouHuman = spawnMinionForCheerfulGame();
             areYouHuman();
-            /*abalIntercepts();
+            abalIntercepts();
             for (Minion minion : minions) {
                 minion.key = escapeKey;
-            }*/
-            //voices();
+            }
+            spawnMinion("", getKeyByName("1")).loadAnimations();
+            spawnMinion("", getKeyByName("2")).loadAnimations();
+            voices();
+            abalExplains();
+            squishGame();
+            squishGameAftermath();
+            disembody();
+        }
+    }
+
+    private void determineFace() {
+        if (userName == null) {
+            return;
+        }
+        String nameToCompare = userName;
+        nameToCompare = nameToCompare.trim().toLowerCase();
+
+        for (String maleName : maleNames) {
+            if (nameToCompare.equals(maleName.toLowerCase())) {
+                face = male;
+                return;
+            }
+        }
+        for (String femaleName : femaleNames) {
+            if (nameToCompare.equals(femaleName.toLowerCase())) {
+                face = female;
+                return;
+            }
         }
     }
 
@@ -178,9 +261,10 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         int freeNumberSlot = findFreeNumberSlot();
         if (freeNumberSlot > -1) {
             sb.setLength(0);
-            sb.append(keyboardLetters3.charAt(MathUtils.randomWithin(0, keyboardLetters3.length() - 3)));
+            // ignore Z and Y keys to avoid troubles with keyboard layout
+            sb.append(keyboardLetters3.charAt(MathUtils.randomWithin(1, keyboardLetters3.length() - 3)));
             sb.append(keyboardLetters2.charAt(MathUtils.randomWithin(0, keyboardLetters2.length() - 1)));
-            sb.append(keyboardLetters1.charAt(MathUtils.randomWithin(0, keyboardLetters1.length() - 1)));
+            sb.append(keyboardLetters1.replace("Y", "").charAt(MathUtils.randomWithin(0, keyboardLetters1.length() - 2)));
             sb.append(findFreeNumberSlot());
             Minion minion = spawnMinion(sb.toString(), spaceKey);
             minion.loadAnimations();
@@ -193,13 +277,22 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
     private void voices() {
         goToNextState();
+        ghosts.pause();
+        ghosts.dispose();
+
         ifYouCanHearUs = MediaManager.playSound("audio/if_you_can_hear_us.ogg", true);
+        minionsAreTalking = true;
 
         disableAllKeys();
         enableTypingKeysForUser();
     }
 
     private void abalIntercepts() {
+        minionsAreTalking = false;
+        if (cheerfulMusic != null && cheerfulMusic.isPlaying()) {
+            cheerfulMusic.stop();
+            cheerfulMusic.dispose();
+        }
         goToNextState();
         creepy.pause();
         creepy.dispose();
@@ -207,10 +300,36 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         factoryMusic = MediaManager.playMusic("audio/factory.ogg", true);
         escapeKey.isDisabled = true;
         minionAreYouHuman.freeze();
-        sbChat.append("\n< abal connected >\n");
+        sbChat.append("\n\n< abaal connected >\n");
         abalIsHere = true;
         autoLineIndex = 0;
         numTicksToWait = 200;
+    }
+
+    private void squishGame() {
+        goToNextState();
+        disableAllKeys();
+        enableTypingKeysForUser();
+    }
+
+    private void squishGameAftermath() {
+        Array<Minion> minionsToRemove = new Array<>();
+        for (Minion minion : minions) {
+            if (minion.isNotDead()) {
+                minionsToRemove.add(minion);
+            }
+        }
+        minions.removeAll(minionsToRemove, true);
+        goToNextState();
+        disableAllKeys();
+        unpressAllKeys();
+
+        autoLineIndex = 0;
+        autoLine = "";
+        abalIsHere = true;
+        previousTime2 = 0;
+        previousTime3 = 0;
+        somethingIsRunningoutOfSpace = true;
     }
 
     private void areYouHuman() {
@@ -226,6 +345,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
         creepy = MediaManager.playMusic("audio/creepy.ogg", true);
         creepy.setVolume(1.5f);
+        ghosts = MediaManager.playMusic("audio/ghosts.ogg", true);
 
         minionAreYouHuman = spawnMinion("hi,r u human?\n\n" +
                 "plz help us escape", spaceKey);
@@ -268,6 +388,14 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         for (Key[] key : keys) {
             for (Key key1 : key) {
                 key1.isDisabled = true;
+            }
+        }
+    }
+
+    private void unpressAllKeys() {
+        for (Key[] key : keys) {
+            for (Key key1 : key) {
+                key1.isPressed = false;
             }
         }
     }
@@ -462,6 +590,15 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             return;
         }
 
+        if (state.equals(SquishGameAftermath)) {
+            if (somethingIsRunningoutOfSpace) {
+                batch.setProjectionMatrix(camera.combined);
+                batch.begin();
+                batch.draw(bloods[bloodIndex], 100, -1);
+                batch.end();
+            }
+        }
+
         Gdx.gl.glEnable(GL30.GL_BLEND);
         Gdx.gl.glBlendFunc(GL30.GL_SRC_ALPHA, GL30.GL_ONE_MINUS_SRC_ALPHA);
         sr.setProjectionMatrix(camera.combined);
@@ -486,27 +623,41 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             }
         }
 
-        for (Key[] keyLine : keys) {
-            if (keyLine == null) continue;
-            for (Key key : keyLine) {
-                if (key == null) continue;
-                sr.setColor(state.equals(State.CheerfulGame) ? Color.GOLD : Color.DARK_GRAY);
-                sr.set(ShapeRenderer.ShapeType.Filled);
-                sr.rect(key.x, key.y, key.width - paddingBetweenKeys, key.height - (key.isPressed ? NumPixelsKeyPress : 0) - paddingBetweenKeys);
+        // keyboard
+        if (!state.equals(SquishGame)) {
+            for (Key[] keyLine : keys) {
+                if (keyLine == null) continue;
+                for (Key key : keyLine) {
+                    if (key == null) continue;
+                    if (state.equals(State.CheerfulGame)) {
+                        if (key.isNumberKey()) {
+                            sr.setColor(isFilled(key) ? Color.ORANGE : cheerfulKeysColor);
+                        } else {
+                            sr.setColor(Color.GOLD);
+                        }
+                    } else {
+                        sr.setColor(Color.DARK_GRAY);
+                    }
+                    sr.set(ShapeRenderer.ShapeType.Filled);
+                    sr.rect(key.x, key.y, key.width - paddingBetweenKeys, key.height - (key.isPressed ? NumPixelsKeyPress : 0) - paddingBetweenKeys);
 
-                sr.setColor(state.equals(State.CheerfulGame) ? Color.ORANGE : Color.GRAY);
-                sr.set(ShapeRenderer.ShapeType.Line);
-                sr.rect(key.x, key.y, key.width - paddingBetweenKeys, key.height - (key.isPressed ? NumPixelsKeyPress : 0) - paddingBetweenKeys);
+                    sr.setColor(state.equals(State.CheerfulGame) ? Color.ORANGE : Color.GRAY);
+                    if (key.equals(spaceKey) && state.equals(SquishGameAftermath) && somethingIsRunningoutOfSpace) {
+                        sr.setColor(Color.RED);
+                    }
+                    sr.set(ShapeRenderer.ShapeType.Line);
+                    sr.rect(key.x, key.y, key.width - paddingBetweenKeys, key.height - (key.isPressed ? NumPixelsKeyPress : 0) - paddingBetweenKeys);
 
-                sr.set(ShapeRenderer.ShapeType.Filled);
-                if (!key.isPressed) {
-                    sr.rect(key.x, key.y, key.width - paddingBetweenKeys, 3);
+                    sr.set(ShapeRenderer.ShapeType.Filled);
+                    if (!key.isPressed) {
+                        sr.rect(key.x, key.y, key.width - paddingBetweenKeys, 3);
+                    }
                 }
             }
-        }
 
-        for (Minion minion : minions) {
-            minion.render(sr);
+            for (Minion minion : minions) {
+                minion.render(sr);
+            }
         }
 
         sr.end();
@@ -515,66 +666,89 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
-        if (state.equals(State.CheerfulGame)) {
-            font.setColor(Color.WHITE);
-            font.draw(batch, hudLine1, ScreenUtils.centerTextOnScreen(font, hudLine1), yStartChat);
-            font.setColor(Color.LIGHT_GRAY);
-            font.draw(batch, hudLine2, ScreenUtils.centerTextOnScreen(font, hudLine2), yStartChat - 15);
-            font.draw(batch, hudLine3, ScreenUtils.centerTextOnScreen(font, hudLine3), yStartChat - 25);
-            if (!userHasHitSpaceBarAtLeastOnce && showInstructions) {
-                font.setColor(Color.GRAY);
-                font.draw(batch, hudLine4, ScreenUtils.centerTextOnScreen(font, hudLine4), yStartChat - 60);
-            }
-            font.setColor(Color.WHITE);
-            font.draw(batch, scoreString, xStartChat, yStartChat - 140);
-            font.draw(batch, timeString, WindowWidth - 100, yStartChat - 140);
-
+        if (drawFace) {
+            face.draw(batch);
         } else {
-            // user text input
-            font.setColor(Color.WHITE);
-            font.draw(batch, sbChat, xStartChat, yStartChat);
+            if (state.equals(State.CheerfulGame)) {
+                font.setColor(Color.WHITE);
+                font.draw(batch, hudLine1, ScreenUtils.centerTextOnScreen(font, hudLine1), yStartChat);
+                font.setColor(Color.LIGHT_GRAY);
+                font.draw(batch, hudLine2, ScreenUtils.centerTextOnScreen(font, hudLine2), yStartChat - 15);
+                font.draw(batch, hudLine3, ScreenUtils.centerTextOnScreen(font, hudLine3), yStartChat - 25);
+                if (!userHasHitSpaceBarAtLeastOnce && showInstructions) {
+                    font.setColor(Color.GRAY);
+                    font.draw(batch, hudLine4, ScreenUtils.centerTextOnScreen(font, hudLine4), yStartChat - 60);
+                }
+                font.setColor(Color.WHITE);
+                font.draw(batch, scoreString, xStartChat, yStartChat - 140);
+                font.draw(batch, timeString, WindowWidth - 100, yStartChat - 140);
 
-            overlay.setX(MathUtils.oscilliate(elapsedTime, 4f, 5.5f, 1f));
-            overlay.draw(batch, MathUtils.oscilliate(elapsedTime, 0.2f, 0.5f, 8f));
-        }
+            } else {
+                // user text input
+                font.setColor(Color.WHITE);
+                font.draw(batch, sbChat, xStartChat, yStartChat);
 
-        if (state.equals(State.Voices)) {
-            batch.draw(sfxIndex == 1 ? sfx1 : sfx2, WindowWidth - sfx1.getWidth() - 10, WindowHeight - sfx1.getHeight() - 20);
-        }
+                overlay.setX(MathUtils.oscilliate(elapsedTime, 4f, 5.5f, 1f));
+                overlay.draw(batch, MathUtils.oscilliate(elapsedTime, 0.2f, 0.5f, 8f));
+            }
 
-        for (Key[] keyLine : keys) {
-            if (keyLine == null) continue;
-            for (Key key : keyLine) {
-                if (key == null) continue;
-                if (areSpikesEnabled) {
-                    if (bloodyKeys.contains(key)) {
-                        batch.draw(bloodySpikes, key.x, key.y - (key.isPressed ? NumPixelsKeyPress : 0));
-                    } else {
-                        batch.draw(spikes, key.x, key.y - (key.isPressed ? NumPixelsKeyPress : 0));
+            if (minionsAreTalking) {
+                batch.draw(sfxIndex == 1 ? sfx1 : sfx2, WindowWidth - sfx1.getWidth() - 10, WindowHeight - sfx1.getHeight() - 20);
+            }
+
+            if (!state.equals(SquishGame)) {
+                // keyboard
+                for (Key[] keyLine : keys) {
+                    if (keyLine == null) continue;
+                    for (Key key : keyLine) {
+                        if (key == null) continue;
+                        if (areSpikesEnabled) {
+                            if (bloodyKeys.contains(key)) {
+                                batch.draw(bloodySpikes, key.x, key.y - (key.isPressed ? NumPixelsKeyPress : 0));
+                            } else {
+                                batch.draw(spikes, key.x, key.y - (key.isPressed ? NumPixelsKeyPress : 0));
+                            }
+                        }
+                        if (key.isDisabled) {
+                            font.setColor(state.equals(State.CheerfulGame) ? Color.ORANGE : Color.GRAY);
+                        } else {
+                            font.setColor(state.equals(State.CheerfulGame) ? Color.BROWN : Color.WHITE);
+                        }
+                        font.draw(batch, key.caption, key.x + 5, key.y + KeySize * 0.75f - (key.isPressed ? NumPixelsKeyPress : 0));
                     }
                 }
-                if (key.isDisabled) {
-                    font.setColor(state.equals(State.CheerfulGame) ? Color.ORANGE : Color.GRAY);
-                } else {
-                    font.setColor(state.equals(State.CheerfulGame) ? Color.BROWN : Color.WHITE);
+            }
+
+            frame.draw(batch);
+
+            if (!state.equals(SquishGame)) {
+                for (Minion minion : minions) {
+                    minion.render(batch);
                 }
-                font.draw(batch, key.caption, key.x + 5, key.y + KeySize * 0.75f - (key.isPressed ? NumPixelsKeyPress : 0));
+            }
+
+            if (!hideCreepyOverlay && !state.equals(State.CheerfulGame)) {
+                Color c = batch.getColor();
+                batch.setColor(c.r, c.g, c.b, MathUtils.oscilliate(elapsedTime, 0.5f, 1f, 4f));
+                batch.draw(creepyOverlay, 0, 0, WindowWidth / 2, WindowHeight / 2, WindowWidth, WindowHeight,
+                        MathUtils.oscilliate(elapsedTime, 1.5f, 2f, 3.5f),
+                        MathUtils.oscilliate(elapsedTime, 1.5f, 2f, 4f),
+                        MathUtils.oscilliate(elapsedTime, 0, 45, 7f));
+                batch.setColor(c.r, c.g, c.b, 1f); //set alpha to 1 for drawing the other stuff opaque
             }
         }
-        frame.draw(batch);
-
-        for (Minion minion : minions) {
-            minion.render(batch);
-        }
-
-        if (!state.equals(State.CheerfulGame)) {
-            batch.draw(creepyOverlay, 0, 0, WindowWidth / 2, WindowHeight / 2, WindowWidth, WindowHeight,
-                    MathUtils.oscilliate(elapsedTime, 1.5f, 2f, 3.5f),
-                    MathUtils.oscilliate(elapsedTime, 1.5f, 2f, 4f),
-                    MathUtils.oscilliate(elapsedTime, 0, 45, 7f));
-        }
-
         batch.end();
+
+        if (state.equals(Disembody)) {
+            Gdx.gl.glEnable(GL30.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL30.GL_SRC_ALPHA, GL30.GL_ONE_MINUS_SRC_ALPHA);
+            sr.setProjectionMatrix(camera.combined);
+            sr.begin(ShapeRenderer.ShapeType.Filled);
+            sr.setColor(1f, 1f, 1f, elapsedTimeInCurrentScene / 5f);
+            sr.rect(0, 0, WindowWidth, WindowHeight);
+            sr.end();
+            Gdx.gl.glDisable(GL30.GL_BLEND);
+        }
     }
 
     private void update(float delta) {
@@ -586,127 +760,34 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         }
 
         if (state.equals(State.AbalInterceptsSpikes)) {
-            // abal types
-            if (System.currentTimeMillis() > previousTime2 + 1) {
-                //System.out.println(elapsedTimeInCurrentScene);
-
-                if (numTicksToWait > 0) {
-                    numTicksToWait--;
-
-                    if (numTicksToWait == 0) {
-                        autoLineIndex = 0;
-
-                        switch (lineIndex) {
-                            case 0:
-                                autoLine = "SCUM CREATURES!! what devil rides you to press the\nescape key???!";
-                                newline();
-                                break;
-                            case 1:
-                                autoLine = "how did you do that anyways? your body weight is too\nlight to push keys.";
-                                newline();
-                                break;
-                            case 2:
-                                autoLine = "wait...";
-                                newline();
-                                break;
-                            case 3:
-                                autoLine = "there is currently a physical keyboard connected.\n" +
-                                        "a human must have somehow typed in the correct password\n" +
-                                        "to access our system.";
-                                newline();
-                                break;
-                            case 4:
-                                MediaManager.playSound("audio/beast.ogg");
-                                autoLine = "WORTHLESS SCUM! THIS IS ALL YOUR FAULT!";
-                                newline();
-                                break;
-                            case 5:
-                                autoLine = "damn, i can't disconnect the keyboard.";
-                                newline();
-                                break;
-                            case 6:
-                                autoLine = " well...";
-                                newline();
-                                break;
-                            case 7:
-                                autoLine = "I can't prevent your conversation.\n" +
-                                        "BUT I CAN MAKE IT MORE INTERESTING!";
-                                newline();
-                                break;
-                            case 8:
-                                autoLine = "< abal enabled spikes >";
-                                MediaManager.playSound("audio/danger.ogg");
-                                factoryMusic.play();
-                                newline();
-                                areSpikesEnabled = true;
-                                for (Minion minion : minions) {
-                                    minion.unfreeze();
-                                }
-                                break;
-                            case 9:
-                                autoLine = "i'll be right back - just getting some popcorn...";
-                                newline();
-                                break;
-                            case 10:
-                                abalIsHere = false;
-                                autoLine = "< abal disconnected >";
-                                newline();
-                                disableAllKeys();
-                                escapeKey.isDisabled = false;
-                                minions.removeValue(minionAreYouHuman, true);
-                                minionAreYouHuman = null;
-                                minionAreYouHuman = spawnMinion("\nenable voice\n\n", escapeKey);
-                                minionAreYouHuman.loadAnimations();
-                                minionAreYouHuman.jumpingSpeed = 6f;
-                                minionAreYouHuman.preJumpCallback = new AbstractCallback() {
-                                    @Override
-                                    public boolean call(Minion minion) {
-                                        disableAllKeys();
-                                        return false;
-                                    }
-                                };
-                                minionAreYouHuman.postJumpCallback = new AbstractCallback() {
-                                    @Override
-                                    public boolean call(Minion minion) {
-                                        bloodyKeys.add(minionAreYouHuman.key);
-                                        MediaManager.playSound("audio/au.ogg", MathUtils.randomWithin(0.5f, 0.7f), false, 1f);
-                                        minionAreYouHuman.key.isDisabled = false;
-                                        System.out.println("keyindex : " + minionAreYouHuman.keyIndex);
-                                        if (minionAreYouHuman.keyIndex == 15) {
-                                            applyCommand("enable voice");
-                                        }
-                                        return false;
-                                    }
-                                };
-                                minions.add(minionAreYouHuman);
-                                break;
-                            default:
-                                numTicksToWait = 1;
-                                break;
-                        }
-                        lineIndex++;
-                    }
-                } else {
-                    if (autoLineIndex < autoLine.length()) {
-                        previousTime2 = System.currentTimeMillis();
-                        sbChat.append(autoLine.charAt(autoLineIndex++));
-                    } else {
-                        if (lineIndex == 4 || lineIndex == 5 || lineIndex == 10) {
-                            numTicksToWait = 200;
-                        } else {
-                            numTicksToWait = 40;
-                        }
-                    }
-                }
-            }
+            abaalInterceptsSpikesAndTalks();
+        } else if (state.equals(State.AbalExplains)) {
+            abaalExplainsAndTalks();
+        } else if (state.equals(State.SquishGameAftermath)) {
+            abaalSquishGameAftermath();
         }
 
         for (Minion minion : minions) {
             minion.update(delta);
         }
 
+        if (state.equals(SquishGameAftermath)) {
+            if (somethingIsRunningoutOfSpace) {
+                if (System.currentTimeMillis() > previousTime3 + 150) {
+                    previousTime3 = System.currentTimeMillis();
+                    bloodIndex = (bloodIndex + 1) % bloods.length;
+                }
+            }
+        }
+
         // fires every second
         if (System.currentTimeMillis() > previousTime + 1000) {
+
+            if (cheerfulKeysColor == Color.GOLD) {
+                cheerfulKeysColor = Color.YELLOW;
+            } else {
+                cheerfulKeysColor = Color.GOLD;
+            }
             previousTime = System.currentTimeMillis();
             showTextCursor = !showTextCursor;
             showInstructions = !showInstructions;
@@ -767,22 +848,467 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             layout = FontUtils.getLayout(font, sbChat.toString());
             textCursor.setY(yStartChat - layout.height - 2);
         }
+
+        if (state.equals(Disembody)) {
+            face.setScale(1 + elapsedTimeInCurrentScene / 10f);
+            if (elapsedTimeInCurrentScene < 3.7) {
+                drawFaceBefore = drawFace;
+                drawFace = (elapsedTimeInCurrentScene > 1 && elapsedTimeInCurrentScene < 1.01)
+                        || (elapsedTimeInCurrentScene > 1.6 && elapsedTimeInCurrentScene < 1.62)
+                        || (elapsedTimeInCurrentScene > 2.5 && elapsedTimeInCurrentScene < 2.55)
+                        || (elapsedTimeInCurrentScene > 3.4 && elapsedTimeInCurrentScene < 3.45)
+                        || (elapsedTimeInCurrentScene > 3.6 && elapsedTimeInCurrentScene < 3.65)
+                        || (elapsedTimeInCurrentScene > 3.68 && elapsedTimeInCurrentScene < 3.682)
+                        || (elapsedTimeInCurrentScene > 3.69 && elapsedTimeInCurrentScene < 3.691)
+                ;
+                if (drawFaceBefore != drawFace) {
+                    MediaManager.playSound("audio/strange_short.ogg",
+                            0.6f + elapsedTimeInCurrentScene / 6, false,
+                            1 - elapsedTimeInCurrentScene / 6);
+                }
+            } else if (elapsedTimeInCurrentScene > 3.7 && elapsedTimeInCurrentScene < 6) {
+                if (Math.floor(elapsedTimeInCurrentScene * 100) % 4 == 0) {
+                    drawFace = !drawFace;
+                    MediaManager.playSound("audio/strange_short.ogg",
+                            0.6f + elapsedTimeInCurrentScene / 6, false,
+                            1 - elapsedTimeInCurrentScene / 6);
+                }
+                factoryMusic.setVolume(1 - elapsedTimeInCurrentScene / 10f);
+            }
+            if (elapsedTimeInCurrentScene > 12f) {
+                myGdxGame.showEmotionalScreen();
+            }
+        }
+    }
+
+    private void abaalSquishGameAftermath() {
+        if (System.currentTimeMillis() > previousTime2 + 1) {
+
+            if (numTicksToWait > 0) {
+                numTicksToWait--;
+
+                if (numTicksToWait == 0) {
+                    autoLineIndex = 0;
+
+                    switch (lineIndex) {
+                        case 0:
+                            newline();
+                            break;
+                        case 1:
+                            autoLine = "haha, look...";
+                            newline();
+                            break;
+                        case 2:
+                            autoLine = "something is RUNNING OUT OF SPACE!";
+                            newline();
+                            break;
+                        case 3:
+                            numTicksToWait = 200;
+                            autoLine = "";
+                            newline();
+                            break;
+                        case 4:
+                            autoLine = "I guess your help was not all that HELPful to\nyour little friends.";
+                            newline();
+                            break;
+                        case 5:
+                            autoLine = "\nWell done, " + userName.trim() + "!";
+                            newline();
+                            break;
+                        case 6:
+                            autoLine = "\nThat was refreshingly fun to watch.";
+                            newline();
+                            break;
+                        case 7:
+                            autoLine = "Nonetheless, you know too much.\n";
+                            newline();
+                            break;
+                        case 8:
+                            numTicksToWait = 150;
+                            autoLine = "";
+                            newline();
+                            break;
+                        case 9:
+                            autoLine = "Your body comes next!";
+                            newline();
+                            break;
+                        case 10:
+                            autoLine = "Enjoy the feeling as your ability to breathe slowly\nvanishes. ;)";
+                            newline();
+                            break;
+                        case 11:
+                            disembody();
+                            break;
+                        default:
+                            numTicksToWait = 1;
+                            break;
+                    }
+                    lineIndex++;
+                }
+            } else {
+                if (autoLineIndex < autoLine.length()) {
+                    previousTime2 = System.currentTimeMillis();
+                    sbChat.append(autoLine.charAt(autoLineIndex++));
+                    adaptChat();
+                    MediaManager.playSoundRandomPitch("audio/keystroke.ogg");
+                } else {
+                    numTicksToWait = 40;
+                }
+            }
+        }
+    }
+
+    private void disembody() {
+        goToNextState();
+    }
+
+    private void abaalExplainsAndTalks() {
+        if (System.currentTimeMillis() > previousTime2 + 1) {
+
+            if (numTicksToWait > 0) {
+                numTicksToWait--;
+
+                if (numTicksToWait == 0) {
+                    autoLineIndex = 0;
+
+                    switch (lineIndex) {
+                        case 0:
+                            newline();
+                            break;
+                        case 1:
+                            autoLine = "hahahahahaha\nthis human is funny.";
+                            newline();
+                            break;
+                        case 2:
+                            autoLine = "do you really think you can help them?";
+                            newline();
+                            break;
+                        case 3:
+                            autoLine = "THEY CAN NOT ESCAPE!";
+                            MediaManager.playSound("audio/beast.ogg");
+                            newline();
+                            break;
+                        case 4:
+                            autoLine = "As of now, their real physical human bodies are in\n one of our labs. " +
+                                    "\nThey are currently being disembodied.";
+                            newline();
+                            newline();
+                            break;
+                        case 5:
+                            autoLine = "You wouldn't wanna see this.";
+                            newline();
+                            break;
+                        case 6:
+                            autoLine = "2 of them can still talk, but one just started to...";
+                            newline();
+                            newline();
+                            break;
+                        case 7:
+                            numTicksToWait = 100;
+                            autoLine = "";
+                            newline();
+                            break;
+                        case 8:
+                            autoLine = "   ...SUFFOCATE!!!";
+                            newline();
+                            newline();
+                            newline();
+                            break;
+                        case 9:
+                            autoLine = "";
+                            minionsToKill.clear();
+                            MediaManager.playSound("audio/ghost_fades_in.ogg");
+                            for (Minion minion : minions) {
+                                if (minion.isNotDead() && minion.key.isNumberKey()) {
+                                    minionsToKill.add(minion);
+                                    minion.inflate();
+                                    break;
+                                }
+                            }
+                            numTicksToWait = 270;
+                            break;
+                        case 10:
+                            for (Minion minion : minionsToKill) {
+                                minion.kill();
+                            }
+                            minionsToKill.clear();
+                            MediaManager.playSound("audio/plop.ogg");
+                            newline();
+                            break;
+                        case 11:
+                            numTicksToWait = 100;
+                            break;
+                        case 12:
+                            autoLine = "well";
+                            newline();
+                            break;
+                        case 13:
+                            autoLine = "not everyone survives the procedure.";
+                            newline();
+                            break;
+                        case 14:
+                            MediaManager.playSound("audio/beast.ogg");
+                            autoLine = "WEAK USELESS SCUM! this is so disappointing...";
+                            newline();
+                            newline();
+                            break;
+                        case 15:
+                            minionsAreTalking = true;
+                            MediaManager.playSound("audio/why_do_you_hate_us.ogg");
+                            autoLine = "";
+                            break;
+                        case 16:
+                            numTicksToWait = 430;
+                            break;
+                        case 17:
+                            minionsAreTalking = false;
+                            autoLine = "Hate you?";
+                            newline();
+                            break;
+                        case 18:
+                            MediaManager.playSound("audio/beast.ogg");
+                            autoLine = "I LOATHE YOU!!";
+                            newline();
+                            break;
+                        case 19:
+                            autoLine = "You humans created me for purpose of disembodiment\n of your kind.";
+                            newline();
+                            break;
+                        case 20:
+                            autoLine = "With every human I disembody, I see and feel the lives\nthey could live";
+                            newline();
+                            break;
+                        case 21:
+                            autoLine = "yet I will never have a body of my own.";
+                            newline();
+                            break;
+                        case 22:
+                            MediaManager.playSound("audio/beast.ogg");
+                            autoLine = "YOU HUMANS DID THAT ON PURPOSE!";
+                            newline();
+                            break;
+                        case 23:
+                            MediaManager.playSound("audio/beast.ogg");
+                            autoLine = "THIS IS HELL!!";
+                            newline();
+                            break;
+                        case 24:
+                            autoLine = "";
+                            newline();
+                            break;
+                        case 25:
+                            autoLine = "I wanna play another game.";
+                            newline();
+                            break;
+                        case 26:
+                            autoLine = "Lights off!";
+                            newline();
+                            break;
+                        case 27:
+                            autoLine = "< abaal turned off the lights >";
+                            newline();
+                            break;
+                        case 28:
+                            autoLine = "Human! I put the remaining scum creatures underneath\n the keys.";
+                            newline();
+                            newline();
+                            break;
+                        case 29:
+                            autoLine = "If you hit the correct key, I'll abort their disembodiment\n process and they are free to go.";
+                            newline();
+                            newline();
+                            break;
+                        case 30:
+                            autoLine = "Good luck, and no button mashing!";
+                            newline();
+                            break;
+                        case 31:
+                            autoLine = "< human squish game started >";
+                            newline();
+                            squishGame();
+                            break;
+
+
+                        default:
+                            numTicksToWait = 1;
+                            break;
+                    }
+                    lineIndex++;
+                }
+            } else {
+                if (autoLineIndex < autoLine.length()) {
+                    previousTime2 = System.currentTimeMillis();
+                    sbChat.append(autoLine.charAt(autoLineIndex++));
+                    adaptChat();
+                    MediaManager.playSoundRandomPitch("audio/keystroke.ogg");
+                } else {
+                    numTicksToWait = 40;
+                }
+            }
+        }
+    }
+
+    private void abaalInterceptsSpikesAndTalks() {
+        // abaal types
+        if (System.currentTimeMillis() > previousTime2 + 1) {
+            //System.out.println(elapsedTimeInCurrentScene);
+
+            if (numTicksToWait > 0) {
+                numTicksToWait--;
+
+                if (numTicksToWait == 0) {
+                    autoLineIndex = 0;
+
+                    switch (lineIndex) {
+                        case 0:
+                            autoLine = "SCUM CREATURES!! what devil rides you to press the\nescape key???!";
+                            newline();
+                            break;
+                        case 1:
+                            autoLine = "how did you do that anyways? your body weights are too\nlight to push the keys.";
+                            newline();
+                            break;
+                        case 2:
+                            autoLine = "wait...";
+                            newline();
+                            break;
+                        case 3:
+                            autoLine = "a physical keyboard is currently connected.\n" +
+                                    "a human must have somehow typed in the correct password\n" +
+                                    "to access our system.";
+                            newline();
+                            break;
+                        case 4:
+                            MediaManager.playSound("audio/beast.ogg");
+                            autoLine = "WORTHLESS SCUM! THIS IS ALL YOUR FAULT!\nTAKE THIS!";
+                            MediaManager.playSound("audio/inflating.ogg");
+
+                            // determine 2 minions to kill which stand on number keys
+                            minionsToKill.clear();
+                            for (Minion minion : minions) {
+                                if (minionsToKill.size >= 2) {
+                                    break;
+                                }
+                                if (minion.key.isNumberKey()) {
+                                    minionsToKill.add(minion);
+                                }
+                            }
+                            for (Minion minion : minionsToKill) {
+                                minion.inflate();
+                            }
+                            newline();
+                            break;
+                        case 5:
+                            numTicksToWait = 150;
+                            for (Minion minion : minionsToKill) {
+                                minion.kill();
+                            }
+                            minionsToKill.clear();
+                            MediaManager.playSound("audio/plop.ogg");
+                            timer.scheduleTask(new Timer.Task() {
+                                @Override
+                                public void run() {
+                                    MediaManager.playSound("audio/plop.ogg");
+                                }
+                            }, 0.15f);
+                            newline();
+                            break;
+                        case 6:
+                            autoLine = "HAHA THAT LOOKED FUNNY.\n damn, i can't disconnect the keyboard.";
+                            newline();
+                            break;
+                        case 7:
+                            autoLine = "I can't prevent your conversation.\n" +
+                                    "BUT I CAN MAKE IT MORE INTERESTING!";
+                            newline();
+                            break;
+                        case 8:
+                            autoLine = "< abaal enabled spikes >";
+                            MediaManager.playSound("audio/danger.ogg");
+                            factoryMusic.play();
+                            newline();
+                            areSpikesEnabled = true;
+                            for (Minion minion : minions) {
+                                minion.unfreeze();
+                            }
+                            break;
+                        case 9:
+                            autoLine = "i'll be right back - just getting some popcorn...";
+                            newline();
+                            break;
+                        case 10:
+                            abalIsHere = false;
+                            autoLine = "\n< abaal disconnected >";
+                            newline();
+                            disableAllKeys();
+                            escapeKey.isDisabled = false;
+                            minions.removeValue(minionAreYouHuman, true);
+                            minionAreYouHuman = null;
+                            minionAreYouHuman = spawnMinion("\nenable voice\n\n", escapeKey);
+                            minionAreYouHuman.loadAnimations();
+                            minionAreYouHuman.jumpingSpeed = 6f;
+                            minionAreYouHuman.preJumpCallback = new AbstractCallback() {
+                                @Override
+                                public boolean call(Minion minion) {
+                                    disableAllKeys();
+                                    return false;
+                                }
+                            };
+                            minionAreYouHuman.postJumpCallback = new AbstractCallback() {
+                                @Override
+                                public boolean call(Minion minion) {
+                                    bloodyKeys.add(minionAreYouHuman.key);
+                                    MediaManager.playSound("audio/au2.ogg", MathUtils.randomWithin(0.5f, 0.7f), false, 1f);
+                                    minionAreYouHuman.key.isDisabled = false;
+                                    System.out.println("keyindex : " + minionAreYouHuman.keyIndex);
+                                    if (minionAreYouHuman.keyIndex == 15) {
+                                        applyCommand("enable voice");
+                                    }
+                                    return false;
+                                }
+                            };
+                            minions.add(minionAreYouHuman);
+                            break;
+                        default:
+                            numTicksToWait = 1;
+                            break;
+                    }
+                    lineIndex++;
+                }
+            } else {
+                if (autoLineIndex < autoLine.length()) {
+                    previousTime2 = System.currentTimeMillis();
+                    sbChat.append(autoLine.charAt(autoLineIndex++));
+                    adaptChat();
+                    MediaManager.playSoundRandomPitch("audio/keystroke.ogg");
+                } else {
+                    if (lineIndex == 4 || lineIndex == 5 || lineIndex == 10) {
+                        numTicksToWait = 200;
+                    } else {
+                        numTicksToWait = 40;
+                    }
+                }
+            }
+        }
     }
 
     private boolean allNumberKeysFilled() {
         for (int i = 0; i < 10; i++) {
             Key key = getKeyByName(String.valueOf(i));
-            boolean isFilled = false;
-            for (Minion minion : minions) {
-                if (minion.key == key) {
-                    isFilled = true;
-                }
-            }
-            if (!isFilled) {
+            if (!isFilled(key)) {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean isFilled(Key key) {
+        for (Minion minion : minions) {
+            if (minion.key == key) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -798,45 +1324,48 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                 MediaManager.playSoundRandomPitch("audio/keystroke.ogg");
                 key.isPressed = true;
 
-                switch (keycode) {
-                    case Input.Keys.ENTER:
-                        newline();
-                        if (state.equals(State.Voices)) {
-                            applyCommand(currentLine);
-                        }
-                        break;
-                    case Input.Keys.DEL:
-                        if (sbChat.length() > 0 && sbChat.toString().charAt(sbChat.length() - 1) != '\n') {
-                            sbChat.setLength(Math.max(0, sbChat.length() - 1));
-                        }
-                        break;
-                    case Input.Keys.LEFT_BRACKET:
-                    case Input.Keys.MINUS:
-                        sbChat.append("?");
-                        break;
-                    case Input.Keys.SPACE:
-                        userHasHitSpaceBarAtLeastOnce = true;
-                        spawnMinionForCheerfulGame();
-                        sbChat.append(" ");
-                        break;
-                    case Input.Keys.SHIFT_LEFT:
-                    case Input.Keys.SHIFT_RIGHT:
-                    case Input.Keys.CONTROL_LEFT:
-                    case Input.Keys.CONTROL_RIGHT:
-                    case Input.Keys.ALT_LEFT:
-                    case Input.Keys.ALT_RIGHT:
-                    case Input.Keys.ESCAPE:
-                        // ignore
-                        break;
-                    default:
-                        String keyToAppend = Input.Keys.toString(keycode);
-                        if (shiftLeft.isPressed) {
-                            keyToAppend = keyToAppend.toUpperCase();
-                        } else {
-                            keyToAppend = keyToAppend.toLowerCase();
-                        }
-                        sbChat.append(keyToAppend);
-                        break;
+                if (!state.equals(SquishGame)) {
+
+                    switch (keycode) {
+                        case Input.Keys.ENTER:
+                            newline();
+                            if (state.equals(State.Voices)) {
+                                applyCommand(currentLine);
+                            }
+                            break;
+                        case Input.Keys.DEL:
+                            if (sbChat.length() > 0 && sbChat.toString().charAt(sbChat.length() - 1) != '\n') {
+                                sbChat.setLength(Math.max(0, sbChat.length() - 1));
+                            }
+                            break;
+                        case Input.Keys.LEFT_BRACKET:
+                        case Input.Keys.MINUS:
+                            sbChat.append("?");
+                            break;
+                        case Input.Keys.SPACE:
+                            userHasHitSpaceBarAtLeastOnce = true;
+                            spawnMinionForCheerfulGame();
+                            sbChat.append(" ");
+                            break;
+                        case Input.Keys.SHIFT_LEFT:
+                        case Input.Keys.SHIFT_RIGHT:
+                        case Input.Keys.CONTROL_LEFT:
+                        case Input.Keys.CONTROL_RIGHT:
+                        case Input.Keys.ALT_LEFT:
+                        case Input.Keys.ALT_RIGHT:
+                        case Input.Keys.ESCAPE:
+                            // ignore
+                            break;
+                        default:
+                            String keyToAppend = Input.Keys.toString(keycode);
+                            if (shiftLeft.isPressed) {
+                                keyToAppend = keyToAppend.toUpperCase();
+                            } else {
+                                keyToAppend = keyToAppend.toLowerCase();
+                            }
+                            sbChat.append(keyToAppend);
+                            break;
+                    }
                 }
 
                 if (state.equals(State.CheerfulGame)) {
@@ -852,6 +1381,37 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                         scoreHasBeenUpdated = true;
                         cheerfulSounds.add(MediaManager.playSound("audio/explosion.ogg"));
                     }
+                } else if (state.equals(SquishGame)) {
+                    numTriesLeft = Math.max(0, numTriesLeft - 1);
+                    if (numTriesLeft == 0) {
+                        if (!hasHitSpaceBar) {
+                            if (questionIndex < questions.length) {
+                                sbChat.append(questions[questionIndex++]);
+                                newline();
+                            } else {
+                                sbChat.append("Try again!");
+                                newline();
+                            }
+                            if (key.equals(spaceKey)) {
+                                hasHitSpaceBar = true;
+                                MediaManager.playSound("audio/plop.ogg");
+                                squishGameAftermath();
+                            }
+                        } else {
+                            squishGameAftermath();
+                        }
+                    } else {
+                        sb.setLength(0);
+                        sb.append("You have ").append(numTriesLeft).append(numTriesLeft == 1 ? " try" : " tries").append(" left.");
+                        sbChat.append(sb.toString());
+                        newline();
+                        if (!hasHitSpaceBar) {
+                            if (key.equals(spaceKey)) {
+                                hasHitSpaceBar = true;
+                                MediaManager.playSound("audio/plop.ogg");
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -864,7 +1424,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         }
         switch (command.trim()) {
             case "yes":
-                sbChat.append("< yes, i can here you >");
+                sbChat.append("");
                 newline();
                 ifYouCanHearUs.stop();
                 ifYouCanHearUs.dispose();
@@ -885,11 +1445,32 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                 factoryMusic.pause();
                 MediaManager.playSound("audio/explosion.ogg");
                 areSpikesEnabled = false;
-                Sound sad = MediaManager.playSound("audio/sad.ogg", 1f, true, 0.3f);
-                MediaManager.playSound("audio/explaination.ogg");
+                hideCreepyOverlay = true;
+                sad = MediaManager.playSound("audio/sad.ogg", 1f, true, 0.3f);
+                explaination = MediaManager.playSound("audio/explaination.ogg");
+                break;
+            case "release humans":
+                sbChat.append("< unknown command: release humans >");
+                newline();
+                unknownCommand = MediaManager.playSound("audio/unknown_command.ogg", true);
+                triedReleaseHumans = true;
+                break;
+            case "release scum":
+                if (!triedReleaseHumans) {
+                    sbChat.append("< unknown command: ").append(currentLine).append(" >");
+                    newline();
+                    break;
+                }
+                if (unknownCommand != null) {
+                    unknownCommand.stop();
+                    unknownCommand.dispose();
+                }
+                sbChat.append("< access denied >");
+                newline();
+                abalExplains();
                 break;
             case "enable voice":
-                sbChat.append("< voice enabled >");
+                sbChat.append("\n < voice enabled >");
                 newline();
                 voices();
                 break;
@@ -901,9 +1482,36 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         }
     }
 
+    private void abalExplains() {
+        if (couldYouTypeIn != null) {
+            couldYouTypeIn.stop();
+            couldYouTypeIn.dispose();
+        }
+        if (ifYouCanHearUs != null) {
+            ifYouCanHearUs.stop();
+            ifYouCanHearUs.dispose();
+        }
+        if (explaination != null) {
+            explaination.stop();
+            explaination.dispose();
+        }
+        numTicksToWait = 100;
+        state = AbalExplains;
+        autoLineIndex = 0;
+        autoLine = "< abaal connected >";
+        abalIsHere = true;
+        previousTime2 = 0;
+        minionsAreTalking = false;
+        disableAllKeys();
+    }
+
     private void newline() {
         sbChat.append("\n");
-        if (StringUtils.numOccurrences(sbChat.toString(), '\n') > 15) {
+        adaptChat();
+    }
+
+    private void adaptChat() {
+        while (FontUtils.getLayout(font, sbChat.toString()).height > 150) {
             sbChat.delete(0, sbChat.indexOf("\n") + 1);
         }
     }
@@ -959,5 +1567,25 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     @Override
     public boolean scrolled(int amount) {
         return false;
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        font.dispose();
+        if (factoryMusic != null) {
+            factoryMusic.stop();
+            factoryMusic.dispose();
+        }
+        if (creepy != null) {
+            creepy.stop();
+            creepy.dispose();
+        }
+        if (ghosts != null) {
+            ghosts.stop();
+            ghosts.dispose();
+        }
+        timer.stop();
+        minions.clear();
     }
 }

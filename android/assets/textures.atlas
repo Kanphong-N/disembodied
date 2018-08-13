@@ -6,39 +6,46 @@ filter: Nearest,Nearest
 repeat: none
 crumble
   rotate: false
-  xy: 104, 2
+  xy: 138, 2
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 1
 crumble
   rotate: false
-  xy: 138, 2
+  xy: 172, 2
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 2
 crumble
   rotate: false
-  xy: 172, 2
+  xy: 206, 2
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 3
 crumble
   rotate: false
-  xy: 206, 2
+  xy: 240, 2
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 4
 crumble
   rotate: false
-  xy: 240, 2
+  xy: 274, 2
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 5
+minion_dead
+  rotate: false
+  xy: 70, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 1
 minion_frozen
   rotate: false
   xy: 36, 2
@@ -55,21 +62,21 @@ minion_moving
   index: 3
 minion_jumping
   rotate: false
-  xy: 70, 2
-  size: 32, 32
-  orig: 32, 32
-  offset: 0, 0
-  index: 1
-minion_jumping
-  rotate: false
-  xy: 70, 2
+  xy: 104, 2
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 2
+minion_jumping
+  rotate: false
+  xy: 104, 2
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 1
 minion_moving
   rotate: false
-  xy: 70, 2
+  xy: 104, 2
   size: 32, 32
   orig: 32, 32
   offset: 0, 0

@@ -1,6 +1,7 @@
 package com.mygdx.starter.model;
 
 import com.badlogic.gdx.math.Rectangle;
+import com.mygdx.starter.MediaManager;
 
 public class Key {
     public final float width;
@@ -30,5 +31,15 @@ public class Key {
 
     public float getCenterY() {
         return y + height / 2;
+    }
+
+    public boolean isNumberKey() {
+        try {
+            int number = Integer.parseInt(caption);
+            return number >= 0 && number <= 9;
+        } catch (Exception ex) {
+            // ignore
+        }
+        return false;
     }
 }

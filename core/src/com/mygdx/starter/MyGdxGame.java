@@ -6,10 +6,16 @@ import com.mygdx.starter.screens.GameScreen;
 
 public class MyGdxGame extends Game {
 
+    private GameScreen gameScreen;
+
     @Override
     public void create() {
-        setScreen(new EmotionalScreen());
-        //setScreen(new GameScreen());
+        gameScreen  = new GameScreen(this);
+        setScreen(gameScreen);
     }
 
+    public void showEmotionalScreen() {
+        gameScreen.dispose();
+        setScreen(new EmotionalScreen());
+    }
 }
