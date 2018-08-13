@@ -12,11 +12,8 @@ public class MyGdxGame extends Game {
 
     @Override
     public void create() {
-        showEmotionalScreen();
-        // setScreen(new CreditsScreen());
-/*
         gameScreen = new GameScreen(this);
-        setScreen(gameScreen);*/
+        setScreen(gameScreen);
     }
 
     public void showEmotionalScreen() {

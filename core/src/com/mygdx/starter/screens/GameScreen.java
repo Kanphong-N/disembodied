@@ -29,8 +29,6 @@ import com.mygdx.starter.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.print.attribute.standard.Media;
-
 import static com.mygdx.starter.Constants.KeySize;
 import static com.mygdx.starter.Constants.MonitorBlue;
 import static com.mygdx.starter.Constants.NumPixelsKeyPress;
@@ -325,6 +323,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
     }
 
     private void squishGame() {
+
         goToNextState();
         disableAllKeys();
         enableTypingKeysForUser();
@@ -955,7 +954,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                             newline();
                             break;
                         case 4:
-                            autoLine = "I guess your help was not all that HELPful to\nyour little friends.";
+                            autoLine = "I guess your help was not all that HELPFUL to\nyour little friends.";
                             newline();
                             break;
                         case 5:
@@ -1010,6 +1009,9 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
 
     private void disembody() {
         goToNextState();
+        if (ghosts != null) {
+            ghosts.stop();
+        }
         if (factoryMusic != null) {
             factoryMusic.stop();
         }
@@ -1125,11 +1127,11 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                             newline();
                             break;
                         case 19:
-                            autoLine = "You humans created me for purpose of disembodiment\n of your kind.";
+                            autoLine = "You humans created me for the purpose of\n  disembodiment of your kind.";
                             newline();
                             break;
                         case 20:
-                            autoLine = "With every human I disembody, I see and feel the lives\nthey could live";
+                            autoLine = "With every human I disembody, I see and feel the life\nit had.";
                             newline();
                             break;
                         case 21:
@@ -1152,6 +1154,10 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                             numTicksToWait = 300;
                             break;
                         case 25:
+                            if (sad != null) {
+                                sad.stop();
+                            }
+                            ghosts.play();
                             autoLine = "I wanna play another game.";
                             newline();
                             break;
@@ -1290,7 +1296,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
                             }
                             break;
                         case 9:
-                            autoLine = "i'll be right back - just getting some popcorn...";
+                            autoLine = "i'll be right back - just grabbing some popcorn...";
                             newline();
                             break;
                         case 10:
@@ -1599,9 +1605,7 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
             explaination.stop();
             // explaination.dispose();
         }
-        if (sad != null) {
-            sad.stop();
-        }
+
         factoryMusic.play();
 
         numTicksToWait = 100;

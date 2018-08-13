@@ -3,10 +3,11 @@ package com.mygdx.starter.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL30;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.mygdx.starter.Constants;
 import com.mygdx.starter.MediaManager;
 import com.mygdx.starter.MyGdxGame;
@@ -21,6 +22,9 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
     private final BitmapFont font;
     private final Music rain;
     private final MyGdxGame myGdxGame;
+    private final Sprite earth;
+    private final Sprite over;
+    private final Sprite waste;
     private float elapsedTime;
     private GlyphLayout layout;
     private String phrase = "";
@@ -28,7 +32,7 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
     private float fontAlpha = 1f;
     private float fadeSpeed = 0.0025f;
     private int sceneIndex;
-    private boolean alreadyStartedagain = false;
+    private boolean alreadyStartedAgain = false;
 
     public EmotionalScreen(MyGdxGame myGdxGame) {
         super(WindowWidth, Constants.WindowHeight);
@@ -38,6 +42,15 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
         rain.setVolume(0.5f);
         Gdx.input.setInputProcessor(this);
         font = new BitmapFont(Gdx.files.internal("fonts/amiga4everpro2.fnt"));
+
+        earth = new Sprite(new Texture("earth.png"));
+        earth.setPosition(WindowWidth / 2 - earth.getWidth() / 2, WindowHeight / 2 - earth.getHeight() / 2 + 50);
+
+        over = new Sprite(new Texture("over.png"));
+        over.setPosition(WindowWidth / 2 - earth.getWidth() / 2, WindowHeight / 2 - earth.getHeight() / 2 + 50);
+
+        waste = new Sprite(new Texture("waste.png"));
+        waste.setPosition(WindowWidth / 2 - earth.getWidth() / 2, WindowHeight / 2 - earth.getHeight() / 2 + 50);
     }
 
     @Override
@@ -49,8 +62,22 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
+
+        //System.out.println(elapsedTime);
+
+        if (!alreadyStartedAgain) {
+            if (elapsedTime < 9) {
+                earth.draw(batch, fontAlpha);
+            } else if (elapsedTime > 22.8 && elapsedTime < 32) {
+                waste.draw(batch, fontAlpha);
+            } else if (elapsedTime > 52.623 && elapsedTime < 62) {
+                over.draw(batch, fontAlpha);
+            }
+        }
+
         font.setColor(1f, 1f, 1f, fontAlpha);
         font.draw(batch, phrase, WindowWidth / 2f - layout.width / 2f, WindowHeight / 2f - layout.height / 2f);
+
         batch.end();
     }
 
@@ -164,14 +191,14 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
             }
         } else if (sceneIndex == 9) {
             fontAlpha -= fadeSpeed;
-            if (alreadyStartedagain) {
+            if (alreadyStartedAgain) {
                 elapsedTime = 0;
                 sceneIndex++;
             } else {
                 if (elapsedTime > 60 + 11.596) {
                     currGroup = group2;
-                    if (!alreadyStartedagain) {
-                        alreadyStartedagain = true;
+                    if (!alreadyStartedAgain) {
+                        alreadyStartedAgain = true;
                         startAgain();
                     }
                     phrase = "";
@@ -179,7 +206,7 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
                 }
             }
         } else if (sceneIndex == 10) {
-            int waitTime = 8;
+            int waitTime = 15;
             fontAlpha -= fadeSpeed;
 
             music.setVolume(Math.max(0, 1f - elapsedTime / waitTime));
@@ -188,10 +215,8 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
             if (elapsedTime >= waitTime) {
                 music.setVolume(0f);
                 rain.setVolume(0f);
-                music.stop();
-                rain.stop();
-            }
-            if (elapsedTime > 5) {
+                //music.stop();
+                //rain.stop();
                 myGdxGame.showCreditsScreen();
             }
         }

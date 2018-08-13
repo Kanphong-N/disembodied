@@ -53,9 +53,7 @@ public class CreditsScreen extends AbstractScreen implements InputProcessor {
             "\n" +
             "\n" +
             "\n" +
-            "All assets have been made by the author within that time." +
-            "\n" +
-            "\n" +
+            "The game, music, graphics and voices have been made\n\nby myself within that time." +
             "\n" +
             "\n" +
             "\n" +
@@ -63,7 +61,7 @@ public class CreditsScreen extends AbstractScreen implements InputProcessor {
             "Tools used include:" +
             "\n" +
             "\n" +
-            " - the libGDX cross-platform game framework" +
+            " - the libGDX cross-platform game dev framework" +
             "\n" +
             "\n" +
             " - Android Studio" +
@@ -93,7 +91,7 @@ public class CreditsScreen extends AbstractScreen implements InputProcessor {
             " - a Kawai digital piano" +
             "\n" +
             "\n" +
-            " - and my voice :)" +
+            " - and my coffee cup :)" +
             "\n" +
             "\n" +
             "\n" +

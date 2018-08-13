@@ -4,11 +4,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
-import com.mygdx.starter.Constants;
 import com.mygdx.starter.AbstractCallback;
+import com.mygdx.starter.Constants;
 import com.mygdx.starter.MediaManager;
-import com.mygdx.starter.MyShapeRenderer;
 import com.mygdx.starter.screens.GameScreen;
 import com.mygdx.starter.utils.MathUtils;
 
@@ -225,7 +225,7 @@ public class Minion {
         }
     }
 
-    public void render(MyShapeRenderer sr) {
+    public void render(ShapeRenderer sr) {
 
         // shadow
         sr.setColor(0.2f, 0.2f, 0.2f, 0.5f);

@@ -1,7 +1,6 @@
 package com.mygdx.starter.model;
 
 import com.badlogic.gdx.math.Rectangle;
-import com.mygdx.starter.MediaManager;
 
 public class Key {
     public final float width;
