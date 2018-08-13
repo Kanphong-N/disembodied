@@ -44,7 +44,7 @@ import static com.mygdx.starter.screens.GameScreen.State.SquishGameAftermath;
 public class GameScreen extends AbstractScreen implements InputProcessor {
 
     private final BitmapFont font;
-    private final String userName;
+    private String userName;
     private final Key[][] keys = new Key[7][];
     private final Sprite overlay;
     private final Sprite frame;
@@ -178,7 +178,11 @@ public class GameScreen extends AbstractScreen implements InputProcessor {
         cheerfulMusic = MediaManager.playMusic("audio/bg.ogg", true);
 
         font = new BitmapFont(Gdx.files.internal("fonts/amiga4everpro2.fnt"));
-        userName = System.getProperty("user.name");
+        try {
+            userName = System.getProperty("user.name");
+        } catch (Exception ex) {
+            userName = "Player";
+        }
 
         sfx1 = new Sprite(new Texture("sfx_1.png"));
         sfx2 = new Sprite(new Texture("sfx_2.png"));
