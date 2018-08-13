@@ -8,8 +8,8 @@ public class MyGdxGame extends Game {
 
     @Override
     public void create() {
-        setScreen(new EmotionalScreen());
-        //setScreen(new GameScreen());
+        //setScreen(new EmotionalScreen());
+        setScreen(new GameScreen());
     }
 
 }

@@ -13,6 +13,7 @@ import com.mygdx.starter.screens.GameScreen;
 import com.mygdx.starter.utils.MathUtils;
 
 import static com.mygdx.starter.Constants.NumPixelsKeyPress;
+import static com.mygdx.starter.model.Minion.State.Dead;
 import static com.mygdx.starter.model.Minion.State.Frozen;
 import static com.mygdx.starter.model.Minion.State.Idle;
 import static com.mygdx.starter.model.Minion.State.Jumping;
@@ -30,10 +31,11 @@ public class Minion {
     private Animation[] animations;
 
     public float x, y;
-    public State state;
+    private State state;
     private float elapsedTime;
     public Key key;
     private float spriteSize = 32;
+    private float initialSpriteSize = 32;
     private boolean standsOnPressedKey;
     public float walkingSpeed = MathUtils.randomWithin(0.1f, 0.2f);
     public float jumpingSpeed = MathUtils.randomWithin(2f, 3f);
@@ -49,6 +51,7 @@ public class Minion {
     public AbstractCallback preJumpCallback;
     public AbstractCallback postJumpCallback;
     private State stateBeforeFrozen;
+    private boolean isInflating;
 
     public float getCenterX() {
         return x + spriteSize / 2;
@@ -71,11 +74,27 @@ public class Minion {
     }
 
     public void unfreeze() {
-        state = stateBeforeFrozen;
+        if (!state.equals(Dead)) {
+            state = stateBeforeFrozen;
+        }
+    }
+
+    public void kill() {
+        state = Dead;
+        isInflating = false;
+        spriteSize = initialSpriteSize;
+    }
+
+    public void inflate() {
+        this.isInflating = true;
+    }
+
+    public boolean isNotDead() {
+        return !state.equals(Dead);
     }
 
     public enum State {
-        Spawning, Moving, Jumping, Idle, Frozen
+        Spawning, Moving, Jumping, Idle, Frozen, Dead
     }
 
     public Constants.Directions horizontalMovingDirection;
@@ -116,6 +135,10 @@ public class Minion {
             }
         }
 
+        if (isInflating) {
+            spriteSize += 0.3f;
+        }
+
         switch (state) {
             case Jumping:
                 x += deltaX;
@@ -132,6 +155,8 @@ public class Minion {
                 break;
             case Spawning:
             case Moving:
+                if (isInflating)
+                    break;
                 walkingSpeed -= 0.04f;
                 if (walkingSpeed < targetWalkingSpeed) {
                     walkingSpeed = targetWalkingSpeed;
@@ -203,8 +228,7 @@ public class Minion {
             if (nextKey != null) {
                 if (GameScreen.state.equals(GameScreen.State.CheerfulGame)) {
                     sr.line(getCenterX(), getCenterY(), nextKey.getCenterX(), nextKey.getCenterY(), Color.BROWN, Color.GOLD);
-                }
-                else if (GameScreen.state.equals(GameScreen.State.AbalInterceptsSpikes)) {
+                } else if (GameScreen.state.equals(GameScreen.State.AbalInterceptsSpikes)) {
                     sr.line(getCenterX(), getCenterY(), nextKey.getCenterX(), nextKey.getCenterY(), Color.RED, Color.DARK_GRAY);
                 }
             }
@@ -219,7 +243,11 @@ public class Minion {
         TextureRegion currentFrame;
         currentFrame = getCurrentFrameFor(state, true);
         if (currentFrame != null) {
-            batch.draw(currentFrame, x, y);
+            if (isInflating) {
+                batch.draw(currentFrame, x - (spriteSize - initialSpriteSize) / 2, y - (spriteSize - initialSpriteSize) / 2, spriteSize, spriteSize);
+            } else {
+                batch.draw(currentFrame, x, y);
+            }
         }
     }
 

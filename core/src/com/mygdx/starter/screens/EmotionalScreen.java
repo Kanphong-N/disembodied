@@ -156,9 +156,9 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
             }
         } else if (sceneIndex == 9) {
             fontAlpha -= fadeSpeed;
-            if (elapsedTime > 60 + 10) {
+            if (elapsedTime > 60 + 11.596) {
                 currGroup = group2;
-                sceneIndex = 0;
+                startAgain();
                 phrase = "";
                 fontAlpha = 1f;
             }
@@ -167,6 +167,13 @@ public class EmotionalScreen extends AbstractScreen implements InputProcessor {
         if (!oldPhrase.equals(phrase)) {
             layout = FontUtils.getLayout(font, phrase);
         }
+    }
+
+    private void startAgain() {
+        phrase = "";
+        fontAlpha = 1f;
+        elapsedTime = 0;
+        sceneIndex = 0;
     }
 
     @Override

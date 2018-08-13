@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.Color;
 
 public class Constants {
 
+    public static boolean Debug = true;
+
     public static final String GameTitle = "Disembodied";
     public static final int WindowWidth = 1280 / 2 - 210;
     public static final int WindowHeight = 400;
