@@ -1,0 +1,19 @@
+
+- Push the space-bar to start the game.
+
+
+- Push the keys on which the humans stand on.
+  The goal is to put one human on each of the 0-9 number keys.
+
+
+- Push the keys on which the human which is moving stands on.
+  The first key is the space-bar.
+
+- Push the Escape key and all subsequent keys on which the humans go to.
+
+- Type in: yes <Enter>
+- Type in: remove all spikes <Enter>
+- Type in: release humans <Enter>
+- Type in: release scum <Enter>
+
+- Push some keys randomly, but push at least once the space-bar.
