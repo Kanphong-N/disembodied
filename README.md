@@ -5,7 +5,7 @@
 [![version](https://img.shields.io/badge/version-1.0-2095ff.svg)](CHANGELOG.md)
 [![license](https://img.shields.io/badge/license-GPL--3.0-2095ff.svg)](LICENSE.md)
 
-Disembodied explores one of human kind's deepest and darkest places. Made in 3 days for thr Ludum Sare 42 game development competition.
+Disembodied explores one of human kind's deepest and darkest places. Made in 3 days for thr Ludum Dare 42 game development competition.
 
 ## Download
 
