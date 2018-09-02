@@ -6,13 +6,16 @@
 [![license](https://img.shields.io/badge/license-GPL--3.0-2095ff.svg)](LICENSE.md)
 
 Disembodied explores one of human kind's deepest and darkest places. Made in 3 days for thr Ludum Dare 42 game development competition.
+View the <a href="https://ldjam.com/events/ludum-dare/42/disembodied">Ludum Dare 42 Entry</a>.
+
 
 ## Download
 
-View the <a href="https://ldjam.com/events/ludum-dare/42/disembodied">Ludum Dare 42 Entry</a>.
+App now available on Google Play Store.
 
-Download the <a href="
-https://github.com/cdetamble/disembodied/blob/master/releases/disembodied-1.0.zip?raw=true">Java Version for Windows/Linux/OSX</a>.
+<a href="https://play.google.com/store/apps/details?id=com.mouthlessgames.disembodied"><img src="http://therefactory.bplaced.net/img/google-play-badge.png" width="180"></a>
+
+Download the <a href="https://github.com/cdetamble/disembodied/blob/master/releases/disembodied-1.0.zip?raw=true">Java Version for Windows/Linux/OSX</a>.
 
 ## Timelapse Video
 
