@@ -1,4 +1,3 @@
-## Ludum Dare 42 Entry
 # Disembodied
 <a href="https://www.youtube.com/channel/UCShL6kEbNc02XjA89zsrtDQ"><img src="http://therefactory.bplaced.net/img/youtube_hover.png" height="32px" align="right"></a>
 
