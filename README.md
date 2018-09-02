@@ -20,7 +20,7 @@ Watch me crafting the game in <a href="https://www.youtube.com/embed/qttNmVyfZ0g
 
 ## Permissions
 
-The game optionally requires access to stored contacts for an immersive gameplay experienxe.
+The game optionally requires access to stored contacts for an immersive gameplay experience.
 
 ## License
 
