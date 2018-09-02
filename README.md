@@ -11,16 +11,14 @@ Disembodied explores one of human kind's deepest and darkest places. Made in 3 d
 
 ## Download
 
-View the <a href="https://ldjam.com/events/ludum-dare/42/disembodied">Ludum Sare 42 Entry</a>.
+View the <a href="https://ldjam.com/events/ludum-dare/42/disembodied">Ludum Dare 42 Entry</a>.
 
 Download the <a href="
 https://github.com/cdetamble/disembodied/blob/master/releases/disembodied-1.0.zip?raw=true">Java Version for Windows/Linux/OSX</a>.
 
 ## Timelapse Video
 
-Watch me crafting the game in this timelapse video. 
-
-<a href="https://www.youtube.com/embed/qttNmVyfZ0g"><img src="excluded-resources/youtube1.png"></a> 
+Watch me crafting the game in <a href="https://www.youtube.com/embed/qttNmVyfZ0g">this timelapse video</a>. 
 
 ## Permissions
 
